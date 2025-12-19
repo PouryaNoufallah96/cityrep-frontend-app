@@ -1,4 +1,4 @@
-import { Clock, Map, StarIcon, User } from "lucide-react";
+import { ArrowLeft, Clock, Map, StarIcon, User } from "lucide-react";
 
 type GymCardProps = {
     image: string;
@@ -9,6 +9,8 @@ type GymCardProps = {
     address: string;
     onClick?: () => void;
     level: string;
+    variant?: "map" | "list",
+    handleBack?: () => void;
 };
 
 
@@ -20,13 +22,15 @@ const GymCard = ({
     workingHours,
     address,
     onClick,
-    level
+    level,
+    variant = "list",
+    handleBack
 }: GymCardProps) => {
     return (
         <div
             onClick={onClick}
-            className="w-full cursor-pointer grid grid-cols-[140px_1fr]
-        bg-[#2B2B2B] h-[173px] min-h-[173px] rounded-[12px] overflow-hidden"
+            className={`w-full cursor-pointer grid grid-cols-[140px_1fr]
+        bg-[#2B2B2B] ${variant==="list"?"h-[173px] min-h-[173px]":"h-[190px] min-h-[190px]"} rounded-[12px] overflow-hidden`}
         >
             {/* Image */}
             <div className="w-full h-full">
@@ -44,11 +48,25 @@ const GymCard = ({
                 <div className="w-full justify-between">
                     <p className="text-primary-700 font-bold truncate">{title}</p>
 
-                    <div className="flex items-center gap-1 text-sm">
+                    {variant === "list" ? <div className="flex items-center gap-1 text-sm">
                         <span>{rating}</span>
                         <StarIcon className="fill-primary-100 text-primary-100 h-4 w-4" />
-                    </div>
+                    </div> :
+                        <button onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleBack?.()
+                        }} className="w-8 h-8 cursor-pointer rounded-full bg-secondary-main/16 text-secondary-main flex items-center justify-center">
+                            <ArrowLeft />
+                        </button>
+
+                    }
                 </div>
+                {variant === "map" &&
+                    <div>
+                        <StarIcon className="text-secondary-main fill-secondary-main h-4 w-4" />
+                        <p className="text-xs">{rating}</p>
+                    </div>}
 
                 <div>
                     <User className="text-secondary-main h-4 w-4" />
@@ -60,10 +78,10 @@ const GymCard = ({
                     <p className="text-xs">{workingHours}</p>
                 </div>
 
-                <div>
+                {variant === "list" && <div>
                     <Map className="text-secondary-main h-4 w-4" />
                     <p className="text-xs truncate">{address}</p>
-                </div>
+                </div>}
                 <div className="border border-primary-100 bg-primary-100/14 flex items-center justify-center text-white rounded-full w-max px-2 py-1 text-xs">
                     {level}
                 </div>

@@ -1,5 +1,6 @@
-import { Clock, Filter, Map, MapPin, Search, Star, User } from "lucide-react";
+import { Clock, Filter, List, Map, MapPin, Search, Star, User } from "lucide-react";
 import { useState } from "react";
+import MapComponent from "~/components/homepage/MapComponent"
 import { useNavigate } from "react-router";
 import GymCard from "~/components/homepage/GymCard";
 import SearchInput from "~/components/ui/SearchInput";
@@ -145,36 +146,46 @@ export const gymsMock: GymMock[] = [
 
 export default function Home() {
     const [search, setSearch] = useState<string>("")
+    const [showType, setShowType] = useState<"list" | "map">("list")
     const navigate = useNavigate()
     return (
         <div className="pt-4 w-full">
             <div className="w-full flex items-center justify-between">
                 <SearchInput value={search} onChange={setSearch} />
                 <div className="flex items-center gap-4">
-                    <button className="cursor-pointer bg-[#202020] text-white rounded-full w-12 h-12 flex items-center justify-center">
+                    {showType === "list" && <button className="cursor-pointer bg-[#202020] text-white rounded-full w-12 h-12 flex items-center justify-center">
                         <Filter />
-                    </button>
-                    <button className="cursor-pointer bg-[#202020] text-white rounded-full w-12 h-12 flex items-center justify-center">
-                        <MapPin />
+                    </button>}
+                    <button onClick={() => {
+                        setShowType(showType === "map" ? "list" : "map")
+                    }} className="cursor-pointer bg-[#202020] text-white rounded-full w-12 h-12 flex items-center justify-center">
+                        {showType === "map" ? <List /> : <MapPin />}
                     </button>
                 </div>
             </div>
-            <div className="w-full flex flex-col gap-4 my-4 my-scroll h-[calc(100svh-100px)] overflow-auto">
-                {gymsMock.map((gym) => (
-                    <GymCard
-                        key={gym.id}
-                        image={"/images/mock/gymMock.jpg"}
-                        title={gym.title}
-                        rating={gym.rating}
-                        genderLabel={gym.genderLabel}
-                        workingHours={gym.workingHours}
-                        address={gym.address}
-                        onClick={() => navigate(`gyms/${gym.id}`)}
-                        level="سطح طلایی"
-                    />
-                ))}
+            {
+                showType === "list" ?
+                    <div className="w-full flex flex-col gap-4 my-4 my-scroll h-[calc(100svh-100px)] overflow-auto">
+                        {gymsMock.map((gym) => (
+                            <GymCard
+                                key={gym.id}
+                                image={"/images/mock/gymMock.jpg"}
+                                title={gym.title}
+                                rating={gym.rating}
+                                genderLabel={gym.genderLabel}
+                                workingHours={gym.workingHours}
+                                address={gym.address}
+                                onClick={() => navigate(`gyms/${gym.id}`)}
+                                level="سطح طلایی"
+                            />
+                        ))}
 
-            </div>
+                    </div>
+                    :
+
+                    <MapComponent gyms={gymsMock} />
+            }
+
 
 
         </div>

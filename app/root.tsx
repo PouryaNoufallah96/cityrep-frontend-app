@@ -13,6 +13,8 @@ import {useEffect, useState} from "react";
 import SplashScreen from "~/components/splashScreen";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import "leaflet/dist/leaflet.css";
+import "@neshan-maps-platform/leaflet/dist/leaflet.css";
 
 export const links: Route.LinksFunction = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
