@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+ app.coinhalls.com:
+    build: .
+    container_name: app.coinhalls.com
+    ports:
+      - "127.0.0.1:3001:3014"
+    restart: unless-stopped
