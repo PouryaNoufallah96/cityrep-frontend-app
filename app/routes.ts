@@ -8,7 +8,7 @@ export default [
 
             layout("./layouts/appLayout.tsx", [
                 index("routes/home.tsx"),
-                // route('history', "routes/history/index.tsx"),
+                route('qr', "routes/qr/index.tsx"),
                 // route('settings', 'routes/settings/index.tsx')
             ]),
 
