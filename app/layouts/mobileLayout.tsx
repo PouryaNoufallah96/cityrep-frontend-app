@@ -14,7 +14,7 @@ const MobileLayout = () => {
     return (
         <div className="w-full max-w-xl mx-auto h-[100svh] overflow-hidden [direction:rtl]">
             <Outlet />
-            <Toaster position={"top-right"} visibleToasts={1} richColors={true} />
+            <Toaster position={"top-center"} visibleToasts={1} richColors={true} />
         </div>
     )
 }

@@ -7,6 +7,7 @@ type TextInputProps = {
     placeholder?: string;
     error?: string | null;
     icon?: React.ReactNode;
+    leftIcon?: React.ReactNode;
     onClear?: () => void;
 };
 
@@ -19,6 +20,7 @@ const TextInput = ({
     error,
     icon,
     onClear,
+    leftIcon
 }: TextInputProps) => {
     return (
         <div className="w-full">
@@ -56,6 +58,8 @@ const TextInput = ({
                         <X className="text-white" />
                     </div>
                 )}
+                {leftIcon && <span className="text-white">{leftIcon}</span>}
+
             </div>
 
             <p className="text-red-500 mt-3 h-6 text-sm">{error}</p>

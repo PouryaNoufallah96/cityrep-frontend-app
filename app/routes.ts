@@ -9,11 +9,18 @@ export default [
             layout("./layouts/appLayout.tsx", [
                 index("routes/home.tsx"),
                 route('qr', "routes/qr/index.tsx"),
-                // route('settings', 'routes/settings/index.tsx')
+                route('history', "routes/history/index.tsx"),
+                route('profile', 'routes/profile/index.tsx'),
+                route('wallet', 'routes/wallet/index.tsx')
             ]),
 
             ...prefix("gyms/:gym_id", [
                 route('', 'routes/gyms/[gym_id]/index.tsx'),
+            ]),
+
+            ...prefix("wallet/charge", [
+                route('', 'routes/wallet/charge/index.tsx'),
+                route('receipt', 'routes/wallet/charge/receipt/index.tsx'),
             ])
         ]),
 
