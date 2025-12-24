@@ -1,8 +1,8 @@
-import { X } from "lucide-react";
-import { Mobile } from "react-coolicons";
+import {Mobile} from "react-coolicons";
 import Logo from "~/components/shared/Logo";
-import { Button } from "~/components/ui/button";
+import {Button} from "~/components/ui/button";
 import TextInput from "~/components/ui/TextInput";
+import {Spinner} from "~/components/ui/spinner";
 
 
 type Props = {
@@ -10,13 +10,15 @@ type Props = {
     setMobile: (mobile: string) => void;
     error: string | null;
     handleStepChange: () => void;
+    isLoading?: boolean;
 }
 
-const InputMobileStep = ({ mobile, setMobile, error, handleStepChange }: Props) => {
+const InputMobileStep = ({mobile, setMobile, error, handleStepChange, isLoading}: Props) => {
     return (
-        <div className="bg-[#121314] w-full h-[100svh] flex flex-col items-center justify-between pt-[115px] pb-10 px-[30px]">
+        <div
+            className="bg-[#121314] w-full h-[100svh] flex flex-col items-center justify-between pt-[115px] pb-10 px-[30px]">
             <div>
-                <Logo />
+                <Logo/>
                 <p className="text-secondary-main mt-[30px] text-xl">هدف با تو، مسیرت با ما !</p>
             </div>
             <div className="w-full">
@@ -26,17 +28,23 @@ const InputMobileStep = ({ mobile, setMobile, error, handleStepChange }: Props) 
                     onChange={setMobile}
                     placeholder="شماره موبایل خود را وارد کنید"
                     error={error}
-                    icon={<Mobile />}
+                    icon={<Mobile/>}
                     onClear={() => setMobile("")}
                 />
             </div>
 
             <div className="w-full">
-                <Button onClick={handleStepChange} className="text-white font-medium w-full h-12 rounded-full bg-primary-main">ارسال کد</Button>
+                <Button disabled={isLoading} onClick={handleStepChange}
+                        className="text-white font-medium w-full h-12 rounded-full bg-primary-main">
+                    {
+                        isLoading && <Spinner/>
+                    }
+                    ارسال کد
+                </Button>
             </div>
 
 
-        </div >
+        </div>
     )
 }
 export default InputMobileStep;

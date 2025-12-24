@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Navigator from "~/components/shared/Navigator";
 import { Button } from "~/components/ui/button";
+import {Spinner} from "~/components/ui/spinner";
 
 type Props = {
     error: string | null;
     handleStepChange: (otp: string) => void;
     handleBack: () => void;
     handleResend: () => void;
+    isLoading?: boolean;
 };
 
 
@@ -14,7 +16,7 @@ const OTP_LENGTH = 4;
 const RESEND_TIME = 5;
 const MAX_RESEND_COUNT = 2;
 
-const VerifyStep = ({ error, handleStepChange, handleBack, handleResend }: Props) => {
+const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleResend }: Props) => {
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
     const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -165,15 +167,20 @@ const VerifyStep = ({ error, handleStepChange, handleBack, handleResend }: Props
             <div className="w-full">
                 <Button
                     onClick={submitHandler}
+
                     className="text-white font-medium w-full h-12 rounded-full bg-primary-main"
-                    disabled={otp.join("").length !== OTP_LENGTH}
+                    disabled={otp.join("").length !== OTP_LENGTH || isLoading}
                 >
+                    {
+                        isLoading && <Spinner/>
+                    }
                     تایید
                 </Button>
 
                 <button
                     onClick={handleBack}
                     className="cursor-pointer w-full mt-5 text-primary-100 font-medium"
+                    disabled={isLoading}
                 >
                     تغییر شماره موبایل
                 </button>

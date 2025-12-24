@@ -13,16 +13,16 @@ type Props = {
     handleResend: () => void;
 };
 
-type Gender = "male" | "female" | "";
+type Gender = "Male" | "Female" | "";
 
-type ProfileFormData = {
+export type ProfileFormData = {
     firstName: string;
     lastName: string;
     gender: Gender;
     birthDate: string; // YYYY-MM-DD یا هر فرمتی که backend می‌خواد
 };
 
-const CompleteProfileStep = ({ error, handleStepChange, handleBack, handleResend }: Props) => {
+const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
     const [form, setForm] = useState<ProfileFormData>({
         firstName: "",
         lastName: "",
@@ -56,7 +56,6 @@ const CompleteProfileStep = ({ error, handleStepChange, handleBack, handleResend
 
     const submitHandler = () => {
         if (!validateForm()) return;
-
         handleStepChange(form);
     };
 
@@ -87,7 +86,7 @@ const CompleteProfileStep = ({ error, handleStepChange, handleBack, handleResend
 
                 <InputButton
                     label="جنسیت"
-                    value={form.gender === "male" ? "مرد" : form.gender === "female" ? "زن" : ""}
+                    value={form.gender === "Male" ? "مرد" : form.gender === "Female" ? "زن" : ""}
                     onClick={() => setGenderSheetOpen(true)}
                     placeholder="جنسیت خود را انتخاب کنید"
                     error={errors.gender}
@@ -132,8 +131,8 @@ const CompleteProfileStep = ({ error, handleStepChange, handleBack, handleResend
                 }}
                 value={form.gender}
                 options={[
-                    { label: "زن", value: "female" },
-                    { label: "مرد", value: "male" },
+                    { label: "زن", value: "Female" },
+                    { label: "مرد", value: "Male" },
                 ]}
             />
 

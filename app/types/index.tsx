@@ -1,33 +1,49 @@
-
-export interface AssetItem {
-    id: string;
-    symbol: string;
-    name: string;
-    description: string;
-    covered: number;
-    availableForCover: number;
-    logo: string;
+export interface GeoLocation {
+    longitude: number;
+    latitude: number;
 }
 
-export interface TokenContract {
-    date: string; // e.g. "2026/02/01"
-    contractExpirationDate: string; // e.g. "2026/04/01"
-    symbol: string; // e.g. "MGC"
-    name: string; // e.g. "Meta game coin"
-    value: number; // e.g. 0.0
-    currency: string; // e.g. "USD"
-    quantity: number;
-    months: number;
-    plan: string;
-    monthlyFee: number;
-    return: number;
+export interface GymAddress {
+    geoLocation: GeoLocation;
+    province: string;
+    city: string;
+    address: string;
+    postalCode: string;
 }
 
-export interface TokenData {
-    "price": {
-        "tokenName": string,
-        "tokenNetwork": string,
-        "price": number
-    },
-    "lastUpdated": string
+export interface GymWorkingHour {
+    dayOfWeek:
+        | "Sunday"
+        | "Monday"
+        | "Tuesday"
+        | "Wednesday"
+        | "Thursday"
+        | "Friday"
+        | "Saturday";
+    isClosed: boolean;
 }
+
+export interface GymContact {
+    phoneNumber: string;
+    email: string;
+    socialMedia: Record<string, string>;
+}
+
+export interface GymImage {
+    imageUrl: string;
+    order: number;
+}
+
+export interface Pagination {
+    page: number;
+    size: number;
+}
+
+export interface NearestFilter {
+    latitude: number;
+    longitude: number;
+    maxDistanceMeters: number;
+}
+
+export type Gender = "Male" | "Female";
+export type GymLevel = "Basic" | "Intermediate" | "Advanced" | "Professional"

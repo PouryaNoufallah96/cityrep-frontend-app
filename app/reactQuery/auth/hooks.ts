@@ -1,46 +1,76 @@
-// app/reactQuery/auth/hooks.ts
-import {useMutation, useQuery} from "@tanstack/react-query";
-import {authServices, type NonceRequest, type NonceVerification, type NonceVerificationPureWallet} from "./services";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+    clientAuthServices,
+    type GetVerificationCodeForAuthenticationRequest,
+    type VerifyAndLoginWithVerificationCodeRequest,
+    type ClientProfileDataUpdate,
+    type ChangePhoneNumberRequest,
+    type VerifyChangePhoneNumberRequest,
+} from "./services";
 
-// 🔹 Get nonce for wallet address
-export const useGetNonce = () =>
+/* =======================
+   Auth hooks
+======================= */
+
+// 🔹 Request verification code
+export const useRequestVerificationCode = () =>
     useMutation({
-        mutationKey: ["getNonce"],
-        mutationFn: (data: NonceRequest) => authServices.getNonce(data),
+        mutationKey: ["requestVerificationCode"],
+        mutationFn: (data: GetVerificationCodeForAuthenticationRequest) =>
+            clientAuthServices.requestVerificationCode(data),
     });
 
-// 🔹 Get JWT token after signature
-export const useGetToken = () =>
+// 🔹 Verify code & login
+export const useVerifyAndLogin = () =>
     useMutation({
-        mutationKey: ["getToken"],
-        mutationFn: (data: NonceVerification) => authServices.getToken(data),
+        mutationKey: ["verifyAndLogin"],
+        mutationFn: (data: VerifyAndLoginWithVerificationCodeRequest) =>
+            clientAuthServices.verifyAndLogin(data),
+
     });
 
-export const useLogout = () =>
+// 🔹 Renew token
+export const useRenewToken = () =>
     useMutation({
-        mutationKey: ["logout"],
-        mutationFn: () => authServices.logout(),
+        mutationKey: ["renewToken"],
+        mutationFn: () => clientAuthServices.renewToken(),
     });
 
-export const useGetTokenWithPureWallet = () =>
-    useMutation({
-        mutationKey: ["getTokenWithPureWallet"],
-        mutationFn: (data: NonceVerificationPureWallet) => authServices.getTokenWithPureWallet(data),
-    });
+/* =======================
+   Profile hooks
+======================= */
 
-// 🔹 Fetch user data
-export const useGetUser = () =>
+// 🔹 Get client profile
+export const useGetClientData = () =>
     useQuery({
-        queryKey: ["getUser"],
-        queryFn: () => authServices.getUser(),
-    });
-export const useGetUserStats = () =>
-    useQuery({
-        queryKey: ["getUserStats"],
-        queryFn: () => authServices.getUserStats(),
-        refetchOnMount: true,
+        queryKey: ["getClientData"],
+        queryFn: () => clientAuthServices.getClientData(),
+        staleTime: 0,
+        gcTime: 0,
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
-        gcTime: 0,
-        staleTime: 0
+    });
+
+// 🔹 Upsert profile data
+export const useUpsertProfileData = () =>
+    useMutation({
+        mutationKey: ["upsertProfileData"],
+        mutationFn: (data: ClientProfileDataUpdate) =>
+            clientAuthServices.upsertProfileData(data),
+    });
+
+// 🔹 Request phone change
+export const useRequestChangePhoneNumber = () =>
+    useMutation({
+        mutationKey: ["requestChangePhoneNumber"],
+        mutationFn: (data: ChangePhoneNumberRequest) =>
+            clientAuthServices.requestChangePhoneNumber(data),
+    });
+
+// 🔹 Verify phone change
+export const useVerifyChangePhoneNumber = () =>
+    useMutation({
+        mutationKey: ["verifyChangePhoneNumber"],
+        mutationFn: (data: VerifyChangePhoneNumberRequest) =>
+            clientAuthServices.verifyChangePhoneNumber(data),
     });

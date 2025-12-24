@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import {useEffect} from "react";
+import L from "@neshan-maps-platform/leaflet";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -83,3 +85,21 @@ export const randomTehranLocation = () => ({
 export const getGoogleMapsDirectionUrl = (lat: number, lng: number) =>
   `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
+
+
+export const boundsToNearestFilter = (map: L.Map) => {
+    const bounds = map.getBounds();
+    const center = bounds.getCenter();
+
+    const northEast = bounds.getNorthEast();
+    const southWest = bounds.getSouthWest();
+
+    // approximate radius in meters
+    const radius = center.distanceTo(northEast);
+
+    return {
+        latitude: center.lat,
+        longitude: center.lng,
+        maxDistanceMeters: Math.round(radius),
+    };
+};
