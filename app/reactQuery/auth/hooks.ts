@@ -74,3 +74,16 @@ export const useVerifyChangePhoneNumber = () =>
         mutationFn: (data: VerifyChangePhoneNumberRequest) =>
             clientAuthServices.verifyChangePhoneNumber(data),
     });
+
+
+export const useGetOrCreateWallet = () =>
+    useQuery({
+        queryKey: ["wallet"],
+        queryFn: () => clientAuthServices.getOrCreateWallet(),
+
+        // چون wallet هویتیه
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+    });

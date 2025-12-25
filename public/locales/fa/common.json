@@ -1,7 +1,20 @@
 {
+  "week": {
+    "Saturday": "شنبه",
+    "Sunday": "یکشنبه",
+    "Monday": "دوشنبه",
+    "Tuesday": "سه‌شنبه",
+    "Wednesday": "چهارشنبه",
+    "Thursday": "پنج‌شنبه",
+    "Friday": "جمعه"
+  },
   "gym": {
     "level": {
       "Basic": "عادی"
+    },
+    "gender":{
+      "Male":"آقایان",
+      "Female":"بانوان"
     }
   }
 }

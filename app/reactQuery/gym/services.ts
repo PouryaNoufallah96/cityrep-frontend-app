@@ -1,4 +1,4 @@
-import {axiosInstance} from "~/lib/axiosInstance";
+import { axiosInstance } from "~/lib/axiosInstance";
 import type {
     Gender,
     GymAddress,
@@ -30,23 +30,64 @@ export interface GymFilter {
     nearest?: NearestFilter;
 }
 
-// 🔹 Results
+export type GymState = "NotVerified" | "Verified" | "Rejected";
+export type DayOfWeek =
+    | "Saturday"
+    | "Sunday"
+    | "Monday"
+    | "Tuesday"
+    | "Wednesday"
+    | "Thursday"
+    | "Friday";
+
+
+/* ---------------- Trends ---------------- */
+
+export interface GymTrendWorkingHours {
+    isActive: boolean;
+    workingHours: GymWorkingHour[];
+}
+
+export interface GymTrend {
+    gymTrendId: string;
+    title: string;
+    men: GymTrendWorkingHours;
+    women: GymTrendWorkingHours;
+}
+
+
+
+/* ---------------- Facilities ---------------- */
+
+export interface GymFacility {
+    facilityId: string;
+    title: string;
+}
+
+/* ---------------- Main Result ---------------- */
+
 export interface GymResult {
     gymId: string;
     title: string;
+    slug: string;
     description: string;
-    level: "Basic" | "Advanced" | "Professional";
-    supportedGender: string[];
+
+    level: GymLevel;
+    supportedGender: ("Male" | "Female")[];
+
     address: GymAddress;
     gymTotalWorkingHour: GymWorkingHour[];
     contact: GymContact;
+
     images: GymImage[];
-    trends: any[];
-    facilities: any[];
-    state: "NotVerified" | "Verified" | "Rejected";
+    facilities: GymFacility[];
+    trends: GymTrend[];
+
+    state: GymState;
     rate: number;
     createdMoment: string; // ISO
 }
+
 
 export interface GymListData {
     data: GymResult[];
@@ -88,7 +129,7 @@ export const gymServices = {
             "/Gym/GetOneGym",
             data
         );
-        return res.data;
+        return res.data.data;
     },
 
     // 🔹 Get gyms with filters
@@ -108,7 +149,7 @@ export const gymServices = {
             "/Gym/GetGymDataBySlug",
             null,
             {
-                params: {slug},
+                params: { slug },
             }
         );
         return res.data;

@@ -1,4 +1,5 @@
-import {axiosInstance} from "~/lib/axiosInstance";
+import { axiosInstance } from "~/lib/axiosInstance";
+import type { Gender, GymAddress } from "~/types";
 
 /* =======================
    Auth – DTOs
@@ -7,6 +8,15 @@ import {axiosInstance} from "~/lib/axiosInstance";
 export interface GetVerificationCodeForAuthenticationRequest {
     phoneNumber: string;
 }
+
+export interface WalletResult {
+  walletId: string;
+
+  totalBalance: number;
+  availableBalance: number;
+  frozenBalance: number;
+}
+
 
 export type GetVerificationCodeForAuthenticationResult = boolean;
 
@@ -25,13 +35,25 @@ export interface RenewTokenResult {
 /* =======================
    Profile – DTOs
 ======================= */
+export type ClientStatus = "Active" | "Inactive" | "Blocked";
+export type ClientRole = "Client" | "Admin" | "Coach";
 
 export interface ClientResult {
-    id: string;
     phoneNumber: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
+
+    fullName: string;
+    gender: Gender;
+
+    status: ClientStatus;
+    role: ClientRole;
+
+    loginDates: string[]; // ISO[]
+    birthDay?: string;    // YYYY-MM-DD
+
+    address: GymAddress;
+
+    createdMoment: string;  // ISO
+    modifiedMoment: string; // ISO
 }
 
 export interface ClientProfileDataUpdate {
@@ -98,7 +120,7 @@ export const clientAuthServices = {
     // 🔹 Get authenticated client profile
     getClientData: async (): Promise<ClientResult> => {
         const res = await axiosInstance.get("/Client/GetClientData");
-        return res.data;
+        return res.data.data;
     },
 
     // 🔹 Create / update profile
@@ -133,4 +155,12 @@ export const clientAuthServices = {
         );
         return res.data;
     },
+    // 🔹 Get or create wallet
+    getOrCreateWallet: async (): Promise<WalletResult> => {
+        const res = await axiosInstance.get(
+            "/Wallet/GetOrCreateWallet"
+        );
+        return res.data.data;
+    },
+
 };

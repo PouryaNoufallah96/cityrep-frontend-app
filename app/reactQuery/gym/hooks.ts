@@ -10,11 +10,11 @@ import {
 ======================= */
 
 // 🔹 Get single gym by id (imperative → mutation)
-export const useGetOneGym = () =>
-    useMutation({
-        mutationKey: ["getOneGym"],
-        mutationFn: (data: GymIdUpdate) =>
-            gymServices.getOneGym(data),
+export const useGetOneGym = (data: GymIdUpdate) =>
+    useQuery({
+        queryKey: ["getOneGym", data],
+        queryFn: () => gymServices.getOneGym(data),
+        enabled: !!data?.gymId,
     });
 
 // 🔹 Get gyms with filters
