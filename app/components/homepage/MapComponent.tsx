@@ -95,7 +95,7 @@ const MapComponent = () => {
                 <div className="absolute bottom-24 left-4 w-[calc(100%-32px)] z-[100]">
                     <GymCard
                         key={selectedGym.gymId}
-                        image={import.meta.env.VITE_BASE_API + "/api/v1/File/DownloadFile/" + selectedGym.images?.[0].imageUrl}
+                        image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + selectedGym.images?.[0].imageUrl}
                         title={selectedGym.title}
                         rating={selectedGym.rate}
                         genderLabel={selectedGym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}

@@ -11,7 +11,7 @@ type Props = {
 const Navigator = ({ title, className, handleBack, leftComponent }: Props) => {
     const navigate = useNavigate();
     return (
-        <div className={`h-12 text-white w-full flex items-center justify-between ${className}`}>
+        <div className={`h-16 text-white w-full flex items-center justify-between ${className}`}>
             <button className="cursor-pointer" onClick={() => {
                 if (handleBack) {
                     handleBack();

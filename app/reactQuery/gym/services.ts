@@ -53,6 +53,7 @@ export interface GymTrend {
     title: string;
     men: GymTrendWorkingHours;
     women: GymTrendWorkingHours;
+    iconImageUrl?: string;
 }
 
 

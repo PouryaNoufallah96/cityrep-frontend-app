@@ -41,7 +41,7 @@ export default function Home() {
                         {gyms?.data?.data.map((gym) => (
                             <GymCard
                                 key={gym.gymId}
-                                image={import.meta.env.VITE_BASE_API+"/api/v1/File/DownloadFile/"+gym.images?.[0].imageUrl}
+                                image={import.meta.env.VITE_BASE_API+"/File/DownloadFile/"+gym.images?.[0].imageUrl}
                                 title={gym.title}
                                 rating={gym.rate}
                                 genderLabel={gym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}

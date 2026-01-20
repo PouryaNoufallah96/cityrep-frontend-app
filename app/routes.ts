@@ -16,6 +16,7 @@ export default [
 
             ...prefix("gyms/:gym_id", [
                 route('', 'routes/gyms/[gym_id]/index.tsx'),
+                route('reserve', 'routes/gyms/[gym_id]/reserve/index.tsx'),
             ]),
 
             ...prefix("wallet/charge", [
