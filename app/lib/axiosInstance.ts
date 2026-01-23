@@ -74,10 +74,10 @@ function logoutUser() {
     if (typeof window === "undefined") return;
 
     // Remove specific key
-    sessionStorage.removeItem(import.meta.env.VITE_TOKEN_KEY);
+    localStorage.removeItem(import.meta.env.VITE_TOKEN_KEY);
 
     // OR clear all session data:
-    // sessionStorage.clear();
+    localStorage.clear();
 
     // Redirect to auth page
     window.location.href = "/auth"; // or "/login"

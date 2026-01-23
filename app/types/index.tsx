@@ -13,13 +13,13 @@ export interface GymAddress {
 
 export interface GymWorkingHour {
     dayOfWeek:
-        | "Sunday"
-        | "Monday"
-        | "Tuesday"
-        | "Wednesday"
-        | "Thursday"
-        | "Friday"
-        | "Saturday";
+    | "Sunday"
+    | "Monday"
+    | "Tuesday"
+    | "Wednesday"
+    | "Thursday"
+    | "Friday"
+    | "Saturday";
     isClosed: boolean;
 }
 
@@ -47,3 +47,16 @@ export interface NearestFilter {
 
 export type Gender = "Male" | "Female";
 export type GymLevel = "Basic" | "Intermediate" | "Advanced" | "Professional"
+
+export type GymDateTime = {
+    id: number,
+    label: string,
+    dateText: string,
+    times: GymTime[]
+}
+
+export type GymTime = {
+    start: string,
+    end: string,
+    id: number
+}

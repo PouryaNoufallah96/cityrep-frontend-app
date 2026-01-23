@@ -15,7 +15,12 @@ export default function Home() {
     const [search, setSearch] = useState<string>("")
     const [showType, setShowType] = useState<"list" | "map">("list")
     const navigate = useNavigate()
-    const {data: gyms} = useGetGymsWithFilter({})
+    const {data: gyms} = useGetGymsWithFilter({
+        pagination:{
+            page:1,
+            size:20
+        }
+    })
     const {t} = useTranslation();
 
     return (
