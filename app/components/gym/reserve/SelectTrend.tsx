@@ -1,49 +1,78 @@
 import { Check } from "lucide-react";
+import TrendButton from "~/components/gym/reserve/TrendButton";
 import { trends } from "~/constants/mock";
+import type { GymDaySchedule, GymResult, GymTrend } from "~/reactQuery/gym/services";
+import type { TrendButtonItem } from "~/types";
 
 const SelectTrend = ({
     setSelectedTrend,
     SelectedTrend,
-    errors
+    errors,
+    gym
 }: {
-    setSelectedTrend: (id: number) => void,
-    SelectedTrend: number | null
+    setSelectedTrend: (id: string) => void,
+    SelectedTrend: string | null
     errors: string[]
+    gym?: GymResult
 }) => {
+    const calculateMinPrice = (trendSchedule: GymDaySchedule[]) => {
+        const prices = trendSchedule.flatMap(
+            day => day.sessions?.map(session => session.price) ?? []
+        );
+
+        return prices.length ? Math.min(...prices) : 0;
+    };
+
+    const hasSessions = (schedule: GymDaySchedule[]) =>
+        schedule.some(day => day.sessions?.length);
+
+
+    const buildTrendButtons = (trends: GymTrend[]): TrendButtonItem[] => {
+        return trends.flatMap(trend => {
+            const items: TrendButtonItem[] = [];
+
+            if (hasSessions(trend.men)) {
+                items.push({
+                    id: `${trend.gymTrendId}-men`,
+                    trendId: trend.gymTrendId,
+                    gender: "Male",
+                    title: `${trend.title} (آقایان)`,
+                    price: calculateMinPrice(trend.men),
+                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" +trend.trendIconUrl,
+                });
+            }
+
+            if (hasSessions(trend.women)) {
+                items.push({
+                    id: `${trend.gymTrendId}-women`,
+                    trendId: trend.gymTrendId,
+                    gender: "Female",
+                    title: `${trend.title} (بانوان)`,
+                    price: calculateMinPrice(trend.women),
+                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" +trend.trendIconUrl,
+                });
+            }
+
+            return items;
+        });
+    };
+
+    const trendButtons = buildTrendButtons(gym?.trends ?? []);
 
 
 
     return <div className="w-full flex flex-col gap-4">
-        {
-            trends.map(trend => (
-                <button onClick={() => setSelectedTrend(trend.id)} key={trend.id} className="w-full border border-[#A0A0A0] rounded-[12px] p-3 flex justify-between items-center">
-                    <div className="flex gap-4">
-                        <div className="w-14 h-14 bg-primary-700/8 rounded-[8px] flex items-center justify-center">
-                            <img src={trend.icon || "/images/mock/defaultTrendPurple.png"} alt={trend.label} className="w-6 h-6" />
-                        </div>
+        {trendButtons.map(item => (
+            <TrendButton
+                key={item.id}
+                title={item.title}
+                price={item.price}
+                icon={item.icon}
+                selected={SelectedTrend === item.id}
+                onClick={() => setSelectedTrend(item.id)}
+            />
+        ))}
 
-                        <div className="flex flex-col items-start gap-1">
-                            <div className="text-primary-700">
-                                {trend.label}
-                            </div>
-                            <div className="text-white text-sm">
-                                {trend.price.toLocaleString("fa-IR")} تومان
-                            </div>
-                        </div>
-
-                    </div>
-                    <div className={`border ${SelectedTrend === trend.id ? "bg-primary-700 border-primary-700" : "border-[#A0A0A0]"} w-5 h-5 rounded-full border flex items-center justify-center`}>
-                        {
-                            SelectedTrend === trend.id && <Check className="w-3 h-3" />
-                        }
-                    </div>
-
-                </button>
-            ))
-
-
-
-        }
         {
             errors.length > 0 && <div className="text-red-500 text-sm mt-2">
                 {errors.map((error, index) => (

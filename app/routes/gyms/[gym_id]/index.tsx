@@ -1,11 +1,11 @@
 import { Map, Phone, Star, User } from "lucide-react";
 import { Link, useParams } from "react-router";
 import Navigator from "~/components/shared/Navigator";
-import { getGoogleMapsDirectionUrl } from "~/lib/utils";
+import { getGoogleMapsDirectionUrl, getWeekGlobalMinPrice } from "~/lib/utils";
 import Slider from "react-slick";
 import { useRef, useState } from "react";
 import GymLabel from "~/components/gymPage/GymLabel";
-import { useGetOneGym } from "~/reactQuery/gym/hooks";
+import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
 import { Spinner } from "~/components/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { PaperPlane } from "react-coolicons";
@@ -16,9 +16,7 @@ const GymPage = () => {
     const { gym_id } = useParams();
     const sliderRef = useRef<Slider>(null)
     const [currentSlide, setCurrentSlide] = useState(0)
-    const { data: gym } = useGetOneGym({
-        gymId: gym_id || ""
-    })
+    const { data: gym } = useGetGymBySlug(gym_id || "")
     const settings = {
         dots: false,
         infinite: true,
@@ -76,7 +74,7 @@ const GymPage = () => {
                         </div>
                         <div className="mt-[54px] flex items-center justify-between px-4 text-primary-text text-[20px]">
                             <p>{gym.title}</p>
-                            <p>از {25000} تومان</p>
+                            <p>از {getWeekGlobalMinPrice(gym.weekPrices)?.toLocaleString("fa-IR")} تومان</p>
                         </div>
 
 
@@ -96,105 +94,15 @@ const GymPage = () => {
                             <div className="flex flex-nowrap items-center gap-2 w-full max-w-screen overflow-x-auto my-scroll">
                                 {
                                     gym.trends?.map((trend) => (
-                                      <>
-                                      <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
-                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
-                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.iconImageUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.iconImageUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
-                                            </div>
-                                            <p className="text-white">
-                                                {trend.title}
-                                            </p>
-                                        </div>
 
-                                        </>
+                                        <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
+                                            <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
+                                                <img className="w-6 h-6 object-contain" src={trend.trendIconUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
+                                            </div>
+                                            <p className="text-white">
+                                                {trend.title}
+                                            </p>
+                                        </div>
                                     ))
                                 }
                             </div>

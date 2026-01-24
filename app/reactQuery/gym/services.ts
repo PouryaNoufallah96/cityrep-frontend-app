@@ -2,9 +2,11 @@ import { axiosInstance } from "~/lib/axiosInstance";
 import type {
     Gender,
     GymAddress,
+    GymClosure,
     GymContact,
     GymImage,
     GymLevel,
+    GymWeekPrice,
     GymWorkingHour,
     NearestFilter,
     Pagination
@@ -18,6 +20,8 @@ import type {
 export interface GymIdUpdate {
     gymId: string;
 }
+
+
 
 // 🔹 Gym filter
 export interface GymFilter {
@@ -40,20 +44,22 @@ export type DayOfWeek =
     | "Thursday"
     | "Friday";
 
+export type TimeType = "Session" | "FreeTime";
+
 
 /* ---------------- Trends ---------------- */
 
-export interface GymTrendWorkingHours {
-    isActive: boolean;
-    workingHours: GymWorkingHour[];
+export interface GymDaySchedule {
+    dayOfWeek: DayOfWeek;
+    sessions?: GymSession[];
 }
 
 export interface GymTrend {
     gymTrendId: string;
     title: string;
-    men: GymTrendWorkingHours;
-    women: GymTrendWorkingHours;
-    iconImageUrl?: string;
+    men: GymDaySchedule[];
+    women: GymDaySchedule[];
+    trendIconUrl?: string;
 }
 
 
@@ -66,6 +72,17 @@ export interface GymFacility {
 }
 
 /* ---------------- Main Result ---------------- */
+export interface GymSession {
+    gymSessionId: string;
+    price: number;
+    timeType: TimeType;
+    from: number; // minutes
+    to: number;   // minutes
+    capacity?: number; // optional (not always present)
+}
+
+
+
 
 export interface GymResult {
     gymId: string;
@@ -74,7 +91,7 @@ export interface GymResult {
     description: string;
 
     level: GymLevel;
-    supportedGender: ("Male" | "Female")[];
+    supportedGender: Gender[];
 
     address: GymAddress;
     gymTotalWorkingHour: GymWorkingHour[];
@@ -84,10 +101,15 @@ export interface GymResult {
     facilities: GymFacility[];
     trends: GymTrend[];
 
+    weekPrices: GymWeekPrice[];
+
     state: GymState;
     rate: number;
     createdMoment: string; // ISO
+    upcomingClosures: GymClosure[];
+
 }
+
 
 
 export interface GymListData {
@@ -101,22 +123,6 @@ export interface GymListResult {
     isSuccess: boolean;
     statusCode: number;
     message: string;
-}
-
-
-export interface GymFullResult {
-    id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    address: string;
-    images: string[];
-    facilities: string[];
-    plans: {
-        id: string;
-        title: string;
-        price: number;
-    }[];
 }
 
 /* =======================
@@ -145,7 +151,7 @@ export const gymServices = {
     },
 
     // 🔹 Get gym full data by slug
-    getGymDataBySlug: async (slug: string): Promise<GymFullResult> => {
+    getGymDataBySlug: async (slug: string): Promise<GymResult> => {
         const res = await axiosInstance.post(
             "/Gym/GetGymDataBySlug",
             null,
@@ -153,6 +159,6 @@ export const gymServices = {
                 params: { slug },
             }
         );
-        return res.data;
+        return res.data.data;
     },
 };

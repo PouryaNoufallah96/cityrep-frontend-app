@@ -17,6 +17,13 @@ export const useGetOneGym = (data: GymIdUpdate) =>
         enabled: !!data?.gymId,
     });
 
+    export const useGetGymDataBySlug = (data: string) =>
+    useQuery({
+        queryKey: ["getGymDataBySlug", data],
+        queryFn: () => gymServices.getGymDataBySlug(data),
+        enabled: !!data,
+    });
+
 // 🔹 Get gyms with filters
 
 export const useGetGymsWithFilter = (filters: GymFilter) =>
@@ -24,8 +31,8 @@ export const useGetGymsWithFilter = (filters: GymFilter) =>
         queryKey: ["getGymsWithFilter", filters],
         queryFn: () => gymServices.getGymsWithFilter(filters),
         // enabled: !!filters,
-        staleTime: 0,
-        gcTime: 0,
+        // staleTime: 0,
+        // gcTime: 0,
         refetchOnWindowFocus: false,
         refetchOnReconnect: true,
     });
@@ -36,7 +43,5 @@ export const useGetGymBySlug = (slug?: string) =>
         queryKey: ["getGymBySlug", slug],
         queryFn: () => gymServices.getGymDataBySlug(slug!),
         enabled: !!slug,
-        staleTime: 0,
-        gcTime: 0,
         refetchOnWindowFocus: true,
     });

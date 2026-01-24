@@ -9,22 +9,23 @@ import SelectDateTime from "~/components/gym/reserve/SelectDateTime";
 import SelectTrend from "~/components/gym/reserve/SelectTrend";
 import Navigator from "~/components/shared/Navigator";
 import { Button } from "~/components/ui/button";
+import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
 
 type reserveGymSteps = "trend" | "dateTime" | "checkout" | "result";
 const ReserveGym = () => {
     const { t } = useTranslation();
+     const { gym_id } = useParams<{ gym_id: string }>();
+    const { data: gym } = useGetGymBySlug(gym_id || "");
     const navigate = useNavigate();
-    const [SelectedTrend, setSelectedTrend] = useState<number | null>(null);
-    const [selectedDateTime, setSelectedDateTime] = useState<{
-        id: number,
-        timeId: number
-    } | null>(null);
+    const [SelectedTrend, setSelectedTrend] = useState<string | null>(null);
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const steps: { name: reserveGymSteps, title: string, component: ReactNode }[] = [{
         name: "trend",
         title: t("gym.reserve.steps.trend"),
         component: <SelectTrend
             errors={errors}
+            gym={gym}
             setSelectedTrend={(trend) => {
                 setSelectedTrend(trend);
                 setErrors([]);
@@ -36,19 +37,21 @@ const ReserveGym = () => {
         title: t("gym.reserve.steps.dateTime"),
         component: <SelectDateTime
             errors={errors}
-            setSelectedDateTime={(dateTime) => {
-                setSelectedDateTime(dateTime);
+            setSelectedSessionId={(sessionId) => {
+                setSelectedSessionId(sessionId);
                 setErrors([]);
             }}
-            selectedDateTime={selectedDateTime}
+            selectedSessionId={selectedSessionId}
+            gym={gym}
+            selectedTrend={SelectedTrend}
         />
     }, {
         name: "checkout",
         title: t("gym.reserve.steps.checkout"),
         component: <Checkout
             SelectedTrend={SelectedTrend}
-            selectedDateTime={selectedDateTime}
-            gymName="باشگاه اکسیژن"
+            selectedSessionId={selectedSessionId}
+            gym={gym}
         />
     }, {
         name: "result",
@@ -57,13 +60,20 @@ const ReserveGym = () => {
             navigate("/")
         }} />
     }];
-    const { gym_id } = useParams<{ gym_id: string }>();
+   
     const [step, setStep] = useState<reserveGymSteps>("trend");
 
     const handleBack = () => {
         const currentIndex = steps.findIndex(s => s.name === step);
+        switch (step) {
+            case "dateTime":
+                setSelectedSessionId(null);
+        }
+    
         if (currentIndex > 0) {
             setStep(steps[currentIndex - 1].name);
+        }else{
+            navigate(-1);
         }
     }
     const handleNext = () => {
@@ -80,7 +90,7 @@ const ReserveGym = () => {
                 break;
             case "dateTime":
                 //validate date time selection
-                if (selectedDateTime === null || !selectedDateTime.id || !selectedDateTime.timeId) {
+                if (!selectedSessionId) {
                     flag = false;
                     setErrors([t("gym.reserve.errors.selectDateTime")]);
                 }
@@ -101,8 +111,8 @@ const ReserveGym = () => {
     }
     return (
         <div className={`w-full bg-[#2B2B2B] pb-6 h-[100svh] overflow-auto my-scroll ${step !== "result" ? "px-4" : ""} flex flex-col items-center justify-between`}>
-            <div className="w-full">
-                {step !== "result" && <Navigator title={steps.find(s => s.name === step)?.title || ""} handleBack={handleBack} />}
+            <div className="w-full h-[calc(100svh-110px)] overflow-auto my-scroll">
+                {step !== "result" && <Navigator className="sticky top-0 bg-[#2B2B2B]" title={steps.find(s => s.name === step)?.title || ""} handleBack={handleBack} />}
                 {steps.find(s => s.name === step)?.component}
             </div>
             <div className={`w-full px-4 ${step === "result" ? "mt-4" : ""}`}>

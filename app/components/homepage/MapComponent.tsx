@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import type { GymFilter, GymResult } from "~/reactQuery/gym/services";
 import { useGetGymsWithFilter } from "~/reactQuery/gym/hooks";
 import { useDebounce } from "~/hooks/useDebounce";
-import { boundsToNearestFilter } from "~/lib/utils";
+import { boundsToNearestFilter, getWeekGlobalMinPrice } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 
 
@@ -101,9 +101,10 @@ const MapComponent = () => {
                         genderLabel={selectedGym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}
                         workingHours={selectedGym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")}
                         address={selectedGym.address.address}
-                        onClick={() => navigate(`gyms/${selectedGym.gymId}`)}
+                        onClick={() => navigate(`gyms/${selectedGym.slug}`)}
                         level={t("gym.level." + selectedGym.level)}
                         variant="map"
+                        price={getWeekGlobalMinPrice(selectedGym.weekPrices)}
                         handleBack={() => setSelectedGym(null)}
                     />
                 </div>

@@ -1,7 +1,10 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import {useEffect} from "react";
 import L from "@neshan-maps-platform/leaflet";
+import type { DayOfWeek, GymSession } from "~/reactQuery/gym/services";
+import { days } from "~/constants/global";
+import type { GymClosure, GymWeekPrice } from "~/types";
+import moment from "moment-jalaali";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -83,7 +86,7 @@ export const randomTehranLocation = () => ({
 });
 
 export const getGoogleMapsDirectionUrl = (lat: number, lng: number) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
 
 
@@ -102,4 +105,97 @@ export const boundsToNearestFilter = (map: L.Map) => {
         longitude: center.lng,
         maxDistanceMeters: Math.round(radius),
     };
+};
+
+
+export const getTodayAndTomorrow = (): DayOfWeek[] => {
+    const todayIndex = new Date().getDay(); // 0 = Sunday
+    return [
+        days[todayIndex],
+        days[(todayIndex + 1) % 7],
+    ];
+};
+
+export const getRelativeDayLabel = (day: DayOfWeek): string => {
+    const todayIndex = new Date().getDay(); // 0 = Sunday
+    const dayIndex = days.indexOf(day);
+
+    if (dayIndex === todayIndex) return "امروز";
+    if (dayIndex === (todayIndex + 1) % 7) return "فردا";
+
+    return day; // fallback (should not happen)
+};
+
+export const getWeekGlobalMinPrice = (weekPrices: GymWeekPrice[]) => {
+    if (!weekPrices || weekPrices.length === 0) return undefined;
+
+    return Math.min(...weekPrices.map(w => w.minPrice));
+};
+
+export const formatMinutes = (m: number) => {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    return `${h}:${min.toString().padStart(2, "0")}`;
+};
+
+export const getJalaliDateLabel = (day: DayOfWeek): string => {
+  const days: DayOfWeek[] = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const todayIndex = new Date().getDay();
+  const targetIndex = days.indexOf(day);
+
+  if (targetIndex === -1) return "";
+
+  // distance from today (0 = today, 1 = tomorrow, ...)
+  const diff =
+    (targetIndex - todayIndex + 7) % 7;
+
+  const date = moment().add(diff, "days");
+
+  return date.format("jYYYY/jMM/jDD");
+};
+
+
+export const getClosuresForDay = (
+  closures: GymClosure[] | undefined,
+  day: DayOfWeek | null
+) => {
+  if (!closures || !day) return [];
+
+  return closures.filter(c => c.dayOfWeek === day);
+};
+
+export const isSessionClosed = (
+  session: GymSession,
+  closure: GymClosure
+) => {
+  return (
+    session.from < closure.to &&
+    session.to > closure.from
+  );
+};
+
+export const getSessionClosure = (
+  session: GymSession,
+  closures: GymClosure[]
+): GymClosure | null => {
+  for (const c of closures) {
+    if (c.isAllDay) return c;
+
+    const overlaps =
+      session.from < c.to &&
+      session.to > c.from;
+
+    if (overlaps) return c;
+  }
+
+  return null;
 };

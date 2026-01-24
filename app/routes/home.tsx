@@ -6,6 +6,7 @@ import GymCard from "~/components/homepage/GymCard";
 import SearchInput from "~/components/ui/SearchInput";
 import {useGetGymsWithFilter} from "~/reactQuery/gym/hooks";
 import {useTranslation} from "react-i18next";
+import { getWeekGlobalMinPrice } from "~/lib/utils";
 
 
 
@@ -42,7 +43,7 @@ export default function Home() {
             </div>
             {
                 showType === "list" ?
-                    <div className="w-full flex flex-col gap-4 my-4 my-scroll h-[calc(100svh-100px)] overflow-auto">
+                    <div className="w-full flex flex-col gap-4 my-4 pb-[90px] my-scroll h-[calc(100svh-100px)] overflow-auto">
                         {gyms?.data?.data.map((gym) => (
                             <GymCard
                                 key={gym.gymId}
@@ -52,8 +53,9 @@ export default function Home() {
                                 genderLabel={gym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}
                                 workingHours={gym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")}
                                 address={gym.address.address}
-                                onClick={() => navigate(`gyms/${gym.gymId}`)}
+                                onClick={() => navigate(`gyms/${gym.slug}`)}
                                 level={t("gym.level." + gym.level)}
+                                price={getWeekGlobalMinPrice(gym.weekPrices)}
                             />
                         ))}
 

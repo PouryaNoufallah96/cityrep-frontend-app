@@ -17,6 +17,8 @@
       "Female": "بانوان"
     },
     "reserve": {
+      "closedAllDay": "این روز به‌طور کامل تعطیل است",
+      "noSessionsAvailable": "هیچ جلسه‌ای برای این روز موجود نیست",
       "buttons": {
         "next": "ادامه",
         "reserve": "رزرو",
