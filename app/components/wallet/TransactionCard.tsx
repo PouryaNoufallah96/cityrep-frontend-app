@@ -44,7 +44,7 @@ const TransactionCard = ({
             ${type === "out" ? "text-[#E2DAFF]" : "text-[#D5FFAD]"}
           `}
                 >
-                    {amount} ریال
+                    {amount} تومان
                 </p>
             </div>
         </div>
