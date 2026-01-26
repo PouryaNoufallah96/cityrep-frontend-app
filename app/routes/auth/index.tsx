@@ -1,10 +1,10 @@
-import {useEffect, useState} from "react"
-import {useNavigate} from "react-router";
-import CompleteProfileStep, {type ProfileFormData} from "~/components/auth/CompleteProfileStep";
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router";
+import CompleteProfileStep, { type ProfileFormData } from "~/components/auth/CompleteProfileStep";
 import InputMobileStep from "~/components/auth/inputMobileStep"
 import VerifyStep from "~/components/auth/VerifyStep";
-import {setSessionStorage} from "~/lib/utils";
-import {useRequestVerificationCode, useUpsertProfileData, useVerifyAndLogin} from "~/reactQuery/auth/hooks";
+import { setSessionStorage } from "~/lib/utils";
+import { useRequestVerificationCode, useUpsertProfileData, useVerifyAndLogin } from "~/reactQuery/auth/hooks";
 
 
 type AuthStep = "input" | "verify" | "completeProfile";
@@ -18,9 +18,9 @@ const AuthPage = () => {
     const [step, setStep] = useState<AuthStep>("input");
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate()
-    const {mutateAsync: requestCode, isPending: isloadingRequest} = useRequestVerificationCode()
-    const {mutateAsync: verifyCode, isPending: isLoadingVerify} = useVerifyAndLogin()
-    const {mutateAsync: updateProfile, isPending: isLoadingUpdateProfile} = useUpsertProfileData()
+    const { mutateAsync: requestCode, isPending: isloadingRequest } = useRequestVerificationCode()
+    const { mutateAsync: verifyCode, isPending: isLoadingVerify } = useVerifyAndLogin()
+    const { mutateAsync: updateProfile, isPending: isLoadingUpdateProfile } = useUpsertProfileData()
     const verifyStep = () => {
         if (step === "input") {
             //check mobile format
@@ -33,7 +33,7 @@ const AuthPage = () => {
             }
         }
     }
-    const handleStepChange = async ({code, profileData}: { code?: string, profileData?: ProfileFormData }) => {
+    const handleStepChange = async ({ code, profileData }: { code?: string, profileData?: ProfileFormData }) => {
         if (step === "input") {
             const verified = verifyStep();
             if (verified) {
@@ -65,7 +65,8 @@ const AuthPage = () => {
             if (profileData) {
                 try {
                     await updateProfile({
-                        fullName: profileData.firstName + " " + profileData.lastName,
+                        FirstName: profileData.firstName,
+                        LastName: profileData.lastName,
                         gender: profileData.gender || "Male",
                         birthDay: profileData.birthDate || "2025-12-24"
                     })
@@ -103,7 +104,7 @@ const AuthPage = () => {
             props: {
                 error,
                 handleBack: () => setStep("input"),
-                handleStepChange: (code: string) => handleStepChange({code}),
+                handleStepChange: (code: string) => handleStepChange({ code }),
                 isLoading: isLoadingVerify,
                 handleResend: handleResendCode,
             },
@@ -113,7 +114,7 @@ const AuthPage = () => {
             props: {
                 handleBack: () => setStep("input"),
                 isLoading: isLoadingUpdateProfile,
-                handleStepChange: (form: ProfileFormData) => handleStepChange({profileData: form}),
+                handleStepChange: (form: ProfileFormData) => handleStepChange({ profileData: form }),
             },
         },
     };

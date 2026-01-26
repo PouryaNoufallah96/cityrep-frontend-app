@@ -1,4 +1,6 @@
 import { axiosInstance } from "~/lib/axiosInstance";
+import type { GymState } from "~/reactQuery/gym/services";
+import type { GymLevel } from "~/types";
 
 /* =======================
    DTOs
@@ -7,36 +9,67 @@ import { axiosInstance } from "~/lib/axiosInstance";
 // 🔹 Create attendance
 export interface CreateGymAttendanceUpdate {
     gymId: string;
-    planId?: string;
-    checkInMoment?: string; // ISO string (if backend allows override)
+    gymTrendId: string;
+    gymSessionId: string;
 }
 
 // 🔹 Attendance list request
 export interface GetClientGymAttendanceListUpdate {
-    page?: number;
-    pageSize?: number;
-    fromDate?: string; // ISO
-    toDate?: string;   // ISO
+    "pagination": {
+        "page": number,
+        "size": number
+    },
+    "states"?: CreateAttendanceState[],
+    "levels"?: GymLevel[],
+    "from"?: string,
+    "to"?: string,
+    "search"?: string
 }
 
 // 🔹 Attendance list result
 export interface ClientGymAttendanceItem {
-    id: string;
-    gymId: string;
-    gymName: string;
-    checkInMoment: string;
-    rate?: number;
+    "createdMoment": string,
+    "modifiedMoment": string,
+    "gymAttendanceId": string,
+    "gymAttendanceReference": string,
+    "gymId": string,
+    "gymTitle": string,
+    "gymTrendId": string,
+    "gymTrendTitle": string,
+    "gymOwnerPublicKey": string,
+    "gymAddress": string,
+    "gymImageUrl": string,
+    "gymTimeType": "Session" | "FreeTime",
+    "gymSessionId": string,
+    "sessionPrice": number,
+    "gymStart": number,
+    "gymEnd": number,
+    "clientStartTime": number,
+    "notes": string,
+    "level": GymLevel,
+    "expirePaymentCode": number,
+    "gymAttendanceState": CreateAttendanceState,
+    "sessionDate": number,
+    "givenRate": number
 }
 
 export interface GetClientGymAttendanceListResult {
-    items: ClientGymAttendanceItem[];
-    totalCount: number;
+    data: ClientGymAttendanceItem[];
+    "pageCount": number,
+    "totalCount": number
 }
 
 // 🔹 Add / update rate
 export interface AddRateUpdate {
     attendanceId: string;
     rate: number; // usually 1–5
+}
+export type CreateAttendanceState = 'Pending' | 'Reserved' | 'Used' | 'Expired' | 'Failed';
+export interface CreateymAttendanceResponse {
+    "state": CreateAttendanceState,
+    "gatewayUrl": string,
+    "remain": number,
+    attendanceReference: string
 }
 
 /* =======================
@@ -47,12 +80,12 @@ export const gymAttendanceServices = {
     // 🔹 Create attendance
     createByClient: async (
         data: CreateGymAttendanceUpdate
-    ): Promise<string> => {
+    ): Promise<CreateymAttendanceResponse> => {
         const res = await axiosInstance.post(
             "/GymAttendance/CreateByClient",
             data
         );
-        return res.data;
+        return res.data.data;
     },
 
     // 🔹 Get client attendance list
@@ -63,7 +96,7 @@ export const gymAttendanceServices = {
             "/GymAttendance/GetClientList",
             data
         );
-        return res.data;
+        return res.data.data;
     },
 
     // 🔹 Add or update rate

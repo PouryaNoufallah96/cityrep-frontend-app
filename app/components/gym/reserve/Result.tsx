@@ -1,7 +1,19 @@
 import { Check, XIcon } from "lucide-react";
+import QRCode from "qrcode";
+import { useEffect, useState } from "react";
 
 
-const Result = ({ handleClose }: { handleClose: () => void }) => {
+const Result = ({ handleClose, attendanceReference }: { handleClose: () => void, attendanceReference?: string }) => {
+    const [qrSrc, setQrSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!attendanceReference) return;
+
+        QRCode.toDataURL(attendanceReference, {
+            width: 160,
+            margin: 1
+        }).then(setQrSrc);
+    }, [attendanceReference]);
     return (
         <div className="flex flex-col">
             <div className="mb-[52px] bg-[#B1FF6814] flex relative items-center justify-center w-full h-[122px] relative">
@@ -20,7 +32,11 @@ const Result = ({ handleClose }: { handleClose: () => void }) => {
             <div className="w-full flex items-center justify-center flex-col gap-10">
                 <div className="w-[208px] h-[208px] rounded-[24px] border border-primary-main flex items-center justify-center">
                     <div className="w-[160px] h-[160px] bg-white flex items-center justify-center p-3 rounded-[16px]">
-                        <img src="/images/mock/qr.jpg" alt="" />
+                        {qrSrc ? (
+                            <img src={qrSrc} alt="Attendance QR Code" />
+                        ) : (
+                            <span className="text-gray-400 text-sm">در حال ساخت QR…</span>
+                        )}
                     </div>
                 </div>
                 <p className="text-white">

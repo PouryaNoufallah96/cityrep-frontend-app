@@ -1,16 +1,28 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { depositServices, type CreateDepositPayload, type VerifyDepositPayload } from "~/reactQuery/deposit/services";
-import { walletServices, type GetClientTransactionsPayload } from "~/reactQuery/wallet/services";
+import { walletServices, type GetClientTransactionsResponse } from "~/reactQuery/wallet/services";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 /* =======================
    deposit hooks
 ======================= */
 
 
-export const useGetClientTransactions = (data: GetClientTransactionsPayload) =>
-    useQuery({
-        queryKey: ["getClientTransactions"],
-        queryFn: () =>
-            walletServices.getClientTransactions(data),
-    });
 
+export const useGetClientTransactionsInfinite = (size = 20) =>
+  useInfiniteQuery<GetClientTransactionsResponse, Error>({
+    queryKey: ["getClientTransactionsInfinite", size],
+
+    initialPageParam: 1, // ⭐️ اجباری در v5
+
+    queryFn: ({ pageParam }) =>
+      walletServices.getClientTransactions({
+        page: pageParam as number,
+        size,
+      }),
+
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = allPages.length + 1;
+      return nextPage <= lastPage.pageCount
+        ? nextPage
+        : undefined;
+    },
+  });

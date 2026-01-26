@@ -1,9 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import {
     gymAttendanceServices,
     type CreateGymAttendanceUpdate,
     type GetClientGymAttendanceListUpdate,
     type AddRateUpdate,
+    type GetClientGymAttendanceListResult,
 } from "./services";
 
 /* =======================
@@ -19,11 +20,29 @@ export const useCreateGymAttendance = () =>
     });
 
 // 🔹 Get client attendance list
-export const useGetClientGymAttendanceList = () =>
-    useMutation({
-        mutationKey: ["getClientGymAttendanceList"],
-        mutationFn: (data: GetClientGymAttendanceListUpdate) =>
-            gymAttendanceServices.getClientList(data),
+
+export const useGetClientGymAttendanceListInfinite = (
+    params: Omit<GetClientGymAttendanceListUpdate, "pagination">,
+    pageSize = 20
+) =>
+    useInfiniteQuery<GetClientGymAttendanceListResult, Error>({
+        queryKey: ["clientGymAttendanceList", params],
+
+        initialPageParam: 1,
+
+        queryFn: ({ pageParam }) =>
+            gymAttendanceServices.getClientList({
+                ...params,
+                pagination: {
+                    page: pageParam as number,
+                    size: pageSize
+                }
+            }),
+
+        getNextPageParam: (lastPage, allPages) => {
+            const nextPage = allPages.length + 1;
+            return nextPage <= lastPage.pageCount ? nextPage : undefined;
+        }
     });
 
 // 🔹 Add / update rate

@@ -10,11 +10,11 @@ export interface GetVerificationCodeForAuthenticationRequest {
 }
 
 export interface WalletResult {
-  walletId: string;
+    walletId: string;
 
-  totalBalance: number;
-  availableBalance: number;
-  frozenBalance: number;
+    totalBalance: number;
+    availableBalance: number;
+    frozenBalance: number;
 }
 
 
@@ -41,7 +41,8 @@ export type ClientRole = "Client" | "Admin" | "Coach";
 export interface ClientResult {
     phoneNumber: string;
 
-    fullName: string;
+    lastName: string;
+    firstName: string;
     gender: Gender;
 
     status: ClientStatus;
@@ -57,7 +58,8 @@ export interface ClientResult {
 }
 
 export interface ClientProfileDataUpdate {
-    "fullName": string,
+    LastName: string;
+    FirstName: string;
     "birthDay": string,
     "gender": "Male" | "Female",
     "provice"?: string,

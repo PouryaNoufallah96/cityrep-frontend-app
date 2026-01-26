@@ -2,6 +2,7 @@ import axios, {AxiosHeaders} from "axios";
 import hmacSHA256 from "crypto-js/hmac-sha256";
 import Base64 from "crypto-js/enc-base64";
 import { getSessionStorage } from "~/lib/utils";
+import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_API;
 
@@ -59,6 +60,7 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        toast.error(error.response?.data?.Message || "An error occurred");
         // optional: handle 401 or other errors globally
         if (error.response?.status === 401) {
             console.warn("Unauthorized - token may be invalid or expired");

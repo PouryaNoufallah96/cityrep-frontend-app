@@ -21,7 +21,7 @@ const ProfilePage = () => {
                         className="w-16 h-16 rounded-full bg-[#2B2B31] flex items-center justify-center text-primary-700">
                         <User2 className='size-8' />
                     </div>
-                    <p className="text-white mt-2">{userData?.fullName}</p>
+                    <p className="text-white mt-2">{userData?.firstName} {userData?.lastName}</p>
                     <p className="text-white mt-2">{userData?.phoneNumber}</p>
                 </div>
                 <div className="w-[calc(100%+32px)] h-[calc(100%-184px)] bg-[#2B2B2B] rounded-t-[24px] p-4">

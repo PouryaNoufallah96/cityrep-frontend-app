@@ -9,17 +9,22 @@ import SelectDateTime from "~/components/gym/reserve/SelectDateTime";
 import SelectTrend from "~/components/gym/reserve/SelectTrend";
 import Navigator from "~/components/shared/Navigator";
 import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/ui/spinner";
+import { getGoogleMapsDirectionUrl } from "~/lib/utils";
 import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
+import { useCreateGymAttendance } from "~/reactQuery/gymAttendance/hooks";
 
 type reserveGymSteps = "trend" | "dateTime" | "checkout" | "result";
 const ReserveGym = () => {
     const { t } = useTranslation();
-     const { gym_id } = useParams<{ gym_id: string }>();
+    const { gym_id } = useParams<{ gym_id: string }>();
     const { data: gym } = useGetGymBySlug(gym_id || "");
     const navigate = useNavigate();
     const [SelectedTrend, setSelectedTrend] = useState<string | null>(null);
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
+    const [attendanceReference, setAttendanceReference] = useState<string>("");
+    const { mutateAsync: reserve, isPending: reserveLoading } = useCreateGymAttendance()
     const steps: { name: reserveGymSteps, title: string, component: ReactNode }[] = [{
         name: "trend",
         title: t("gym.reserve.steps.trend"),
@@ -58,9 +63,11 @@ const ReserveGym = () => {
         title: t("gym.reserve.steps.result"),
         component: <Result handleClose={() => {
             navigate("/")
-        }} />
+        }}
+            attendanceReference={attendanceReference}
+        />
     }];
-   
+
     const [step, setStep] = useState<reserveGymSteps>("trend");
 
     const handleBack = () => {
@@ -69,11 +76,24 @@ const ReserveGym = () => {
             case "dateTime":
                 setSelectedSessionId(null);
         }
-    
+
         if (currentIndex > 0) {
             setStep(steps[currentIndex - 1].name);
-        }else{
+        } else {
             navigate(-1);
+        }
+    }
+
+    const handleReserve = async () => {
+        const response = await reserve({
+            gymId: gym?.gymId || "",
+            gymTrendId: SelectedTrend?.split('-')[0] || "",
+            gymSessionId: selectedSessionId || ""
+        });
+        console.log("reservation response:", response);
+        if (response.state === "Reserved") {
+            setAttendanceReference(response.attendanceReference);
+            setStep("result");
         }
     }
     const handleNext = () => {
@@ -96,9 +116,19 @@ const ReserveGym = () => {
                 }
                 break;
             case "checkout":
+                handleReserve()
+                return;
                 //validate checkout info
                 break;
             case "result":
+                gym &&
+                    window.open(
+                        getGoogleMapsDirectionUrl(
+                            gym.address.geoLocation.latitude,
+                            gym.address.geoLocation.longitude
+                        ),
+                        "_blank"
+                    );
                 //no validation
                 break;
         }
@@ -125,11 +155,15 @@ const ReserveGym = () => {
                 <Button
                     onClick={handleNext}
                     className="text-white font-medium w-full h-12 rounded-full bg-primary-main"
+                    disabled={reserveLoading}
                 >
                     {
-                        step === "result" ? <div className="flex gap-2 items-center"><PaperPlane /><p>{t("gym.reserve.buttons.navigate")}</p></div> : step === "checkout" ?
-                            t("gym.reserve.buttons.reserve")
-                            : t("gym.reserve.buttons.next")
+                        reserveLoading ?
+                            <Spinner />
+                            :
+                            step === "result" ? <div className="flex gap-2 items-center"><PaperPlane /><p>{t("gym.reserve.buttons.navigate")}</p></div> : step === "checkout" ?
+                                t("gym.reserve.buttons.reserve")
+                                : t("gym.reserve.buttons.next")
                     }
                 </Button>
             </div>
