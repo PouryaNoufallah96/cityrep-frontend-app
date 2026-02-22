@@ -1,9 +1,8 @@
 version: "3.8"
-
 services:
- app.cityrep.com:
+  app.cityrep.com:
     build: .
     container_name: app.cityrep.com
     ports:
-      - "127.0.0.1:3001:3014"
+      - "127.0.0.1:3004:3014"
     restart: unless-stopped
