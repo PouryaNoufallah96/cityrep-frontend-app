@@ -43,7 +43,7 @@ const QrGymItem = ({ gym }: { gym: ClientGymAttendanceItem }) => {
             }
 
             <div className="w-full bg-[#2B2B2B] rounded-[16px] flex-col gap-5 flex items-center justify-center p-4">
-                <img src="/images/mock/gymMock.jpg" alt="" className="w-full aspect-[296/151] object-cover rounded-[8px]" />
+                <img src={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + gym.gymImageUrl} alt="" className="w-full aspect-[296/151] object-cover rounded-[8px]" />
                 <div className="w-full items-center justify-between flex">
                     <div>
                         <p className="text-white">{gym.gymTitle}</p>

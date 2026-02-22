@@ -52,10 +52,10 @@ export default function HistoryPage() {
                 {attendances.map(item => (
                     <GymHistoryCard
                         key={item.gymAttendanceId}
-                        image={item.gymImageUrl}
+                        image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + item.gymImageUrl}
                         title={item.gymTitle}
                         date={new Date(item.sessionDate).toLocaleString("fa-IR")}
-                        address={item.gymAddress}
+                        address={item.gymAddress?.address || ""}
                         handleRate={() => setSelectedGym(item)}
                     />
                 ))}
@@ -81,7 +81,7 @@ export default function HistoryPage() {
 
                     setSelectedGym(undefined)
                 }}
-                image={selectedGym?.gymImageUrl} title={selectedGym?.gymTitle} open={!!selectedGym}
+                image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + selectedGym?.gymImageUrl} title={selectedGym?.gymTitle} open={!!selectedGym}
                 handleOpenChange={() => setSelectedGym(undefined)} />}
 
         </div>

@@ -37,7 +37,16 @@ export interface ClientGymAttendanceItem {
     "gymTrendId": string,
     "gymTrendTitle": string,
     "gymOwnerPublicKey": string,
-    "gymAddress": string,
+    "gymAddress": {
+        "geoLocation": {
+            "longitude": number,
+            "latitude": number
+        },
+        "province": string,
+        "city": string,
+        "address": string,
+        "postalCode": string
+    },
     "gymImageUrl": string,
     "gymTimeType": "Session" | "FreeTime",
     "gymSessionId": string,

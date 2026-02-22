@@ -20,7 +20,7 @@ const ChargeWalletPage = () => {
     }
     return (
         <div className="w-full h-[100svh] bg-[#121314] p-4">
-            <Navigator title={"شارژ کیف پول"} className="mb-4" />
+            <Nvigator title={"شارژ کیف پول"} className="mb-4" />
             <div className="w-full h-[calc(100%-80px)] flex flex-col items-center justify-between">
                 <div className="w-full">
                     <TextInput value={price} onChange={setPrice} label={"مبلغ"} placeholder={"مبلغ شارژ کیف پول"}
