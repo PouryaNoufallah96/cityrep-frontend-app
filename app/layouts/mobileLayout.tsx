@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 
 export function meta({ }: Route.MetaArgs) {
     return [
-        { title: "XFit" },
+        { title: "CityRep" },
         { name: "description", content: "هدف با تو، مسیرت با ما !" },
     ];
 }

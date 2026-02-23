@@ -9,6 +9,10 @@ type TextInputProps = {
     icon?: React.ReactNode;
     leftIcon?: React.ReactNode;
     onClear?: () => void;
+    type?: string;
+    inputMode?: "search" | "text" | "none" | "tel" | "url" | "email" | "numeric" | "decimal" | undefined;
+    maxLength?: number;
+    dir?: "ltr" | "rtl" | "auto";
 };
 
 
@@ -20,13 +24,17 @@ const TextInput = ({
     error,
     icon,
     onClear,
-    leftIcon
+    leftIcon,
+    type = "text",
+    inputMode,
+    maxLength,
+    dir
 }: TextInputProps) => {
     return (
         <div className="w-full">
             {label &&
                 <div className="flex items-center mb-2 h-[22px]">
-                    <div className={`w-2 h-2 rounded-full ${error?"bg-red-600":value.length>0?"bg-green-400":"bg-[#858585]"} ml-2`} />
+                    <div className={`w-2 h-2 rounded-full ${error ? "bg-red-600" : value.length > 0 ? "bg-green-400" : "bg-[#858585]"} ml-2`} />
                     <p className="text-white text-sm">{label}</p>
                 </div>
             }
@@ -41,12 +49,15 @@ const TextInput = ({
                 {icon && <div className="w-px h-6 bg-white" />}
 
                 <input
-                    type="text"
+                    dir={dir}
+                    type={type}
+                    inputMode={inputMode}
+                    maxLength={maxLength}
                     value={value}
                     placeholder={placeholder}
                     onChange={(e) => onChange(e.target.value)}
                     className={`bg-transparent outline-none ${icon ? "px-3" : ""} w-full text-white
-            placeholder:text-white placeholder:opacity-50`}
+            placeholder:text-white placeholder:opacity-50 ${dir === 'ltr' ? 'text-left' : ''}`}
                 />
 
                 {onClear && (

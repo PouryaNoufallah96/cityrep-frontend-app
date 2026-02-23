@@ -1,4 +1,4 @@
-import {ArrowLeft, Clock, Map, StarIcon, User} from "lucide-react";
+import { ArrowLeft, Clock, Map, StarIcon, User } from "lucide-react";
 
 type GymCardProps = {
     image: string;
@@ -10,12 +10,12 @@ type GymCardProps = {
 
 
 const GymHistoryCard = ({
-                            image,
-                            title,
-                            date,
-                            handleRate,
-                            address,
-                        }: GymCardProps) => {
+    image,
+    title,
+    date,
+    handleRate,
+    address,
+}: GymCardProps) => {
     return (
         <div
             className={`w-full grid grid-cols-[140px_1fr] p-3
@@ -40,13 +40,13 @@ const GymHistoryCard = ({
 
 
                 <div>
-                    <Clock className="text-secondary-main h-4 w-4"/>
+                    <Clock className="text-secondary-main h-4 w-4" />
                     <p className="text-xs">{date}</p>
                 </div>
 
                 <div>
-                    <Map className="text-secondary-main h-4 w-4"/>
-                    <p className="text-xs truncate">{address}</p>
+                    <Map className="text-secondary-main h-4 w-4" />
+                    <p className="text-xs truncate max-w-[30vw]">{address}</p>
                 </div>
                 <button
                     onClick={handleRate}

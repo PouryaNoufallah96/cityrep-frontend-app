@@ -5,6 +5,8 @@ import SelectSheet from "~/components/shared/SelectSheet";
 import { Button } from "~/components/ui/button";
 import InputButton from "~/components/ui/InputButton";
 import TextInput from "~/components/ui/TextInput";
+import JalaaliDatePickerSheet from "~/components/shared/JalaaliDatePickerSheet";
+import moment from "moment-jalaali";
 
 type Props = {
     error: string | null;
@@ -19,7 +21,7 @@ export type ProfileFormData = {
     firstName: string;
     lastName: string;
     gender: Gender;
-    birthDate: string; // YYYY-MM-DD یا هر فرمتی که backend می‌خواد
+    birthDay: string; // YYYY-MM-DD
 };
 
 const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
@@ -27,11 +29,12 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
         firstName: "",
         lastName: "",
         gender: "",
-        birthDate: "",
+        birthDay: "",
     });
 
     const [errors, setErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({});
     const [genderSheetOpen, setGenderSheetOpen] = useState(false);
+    const [dateSheetOpen, setDateSheetOpen] = useState(false);
 
     const updateField = <K extends keyof ProfileFormData>(
         key: K,
@@ -47,7 +50,7 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
         if (!form.firstName.trim()) newErrors.firstName = "نام الزامی است";
         if (!form.lastName.trim()) newErrors.lastName = "نام خانوادگی الزامی است";
         if (!form.gender) newErrors.gender = "جنسیت را انتخاب کنید";
-        // if (!form.birthDate) newErrors.birthDate = "تاریخ تولد را وارد کنید";
+        if (!form.birthDay) newErrors.birthDay = "تاریخ تولد را وارد کنید";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -96,13 +99,11 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
 
                 <InputButton
                     label="تاریخ تولد"
-                    value={form.birthDate}
-                    onClick={() => {
-                        // بعداً DatePicker یا Sheet تاریخ
-                    }}
+                    value={form.birthDay ? moment(form.birthDay, "YYYY-MM-DD").format("jYYYY/jMM/jDD") : ""}
+                    onClick={() => setDateSheetOpen(true)}
                     placeholder="تاریخ تولد خود را انتخاب کنید"
-                    error={errors.birthDate}
-                    onClear={() => updateField("birthDate", "")}
+                    error={errors.birthDay}
+                    onClear={() => updateField("birthDay", "")}
                     icon={<Calendar />}
                 />
 
@@ -136,6 +137,13 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
                 ]}
             />
 
+            <JalaaliDatePickerSheet
+                open={dateSheetOpen}
+                onClose={() => setDateSheetOpen(false)}
+                value={form.birthDay}
+                onChange={(date) => updateField("birthDay", date)}
+                title="تاریخ تولد"
+            />
         </div>
     );
 };

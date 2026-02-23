@@ -10,7 +10,10 @@
   },
   "gym": {
     "level": {
-      "Basic": "عادی"
+      "Basic": "عادی",
+      "Intermediate": "متوسط",
+      "Advanced": "پیشرفته",
+      "Professional": "حرفه‌ای"
     },
     "gender": {
       "Male": "آقایان",

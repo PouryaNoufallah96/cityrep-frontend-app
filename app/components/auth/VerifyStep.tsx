@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Navigator from "~/components/shared/Navigator";
+import { toEnglishDigits } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
-import {Spinner} from "~/components/ui/spinner";
+import { Spinner } from "~/components/ui/spinner";
 
 type Props = {
     error: string | null;
@@ -13,7 +14,7 @@ type Props = {
 
 
 const OTP_LENGTH = 4;
-const RESEND_TIME = 5;
+const RESEND_TIME = 120;
 const MAX_RESEND_COUNT = 2;
 
 const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleResend }: Props) => {
@@ -29,13 +30,14 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
     };
 
     const handleChange = (value: string, index: number) => {
-        if (!/^\d?$/.test(value)) return;
+        const englishVal = toEnglishDigits(value);
+        if (!/^\d?$/.test(englishVal)) return;
 
         const newOtp = [...otp];
-        newOtp[index] = value;
+        newOtp[index] = englishVal;
         setOtp(newOtp);
 
-        if (value && index < OTP_LENGTH - 1) {
+        if (englishVal && index < OTP_LENGTH - 1) {
             focusInput(index + 1);
         }
     };
@@ -51,8 +53,7 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
 
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
-        const pasted = e.clipboardData
-            .getData("text")
+        const pasted = toEnglishDigits(e.clipboardData.getData("text"))
             .replace(/\D/g, "")
             .slice(0, OTP_LENGTH);
 
@@ -149,7 +150,7 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
                 ) : !canResend ? (
                     <p className="text-white/60 mt-10">
                         <span className="font-medium text-white">
-                            00:{String(timeLeft).padStart(2, "0")}
+                            {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:{String(timeLeft % 60).padStart(2, "0")}
                         </span>
                     </p>
                 ) : (
@@ -172,7 +173,7 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
                     disabled={otp.join("").length !== OTP_LENGTH || isLoading}
                 >
                     {
-                        isLoading && <Spinner/>
+                        isLoading && <Spinner />
                     }
                     تایید
                 </Button>

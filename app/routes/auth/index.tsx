@@ -68,7 +68,7 @@ const AuthPage = () => {
                         FirstName: profileData.firstName,
                         LastName: profileData.lastName,
                         gender: profileData.gender || "Male",
-                        birthDay: profileData.birthDate || "2025-12-24"
+                        birthDay: profileData.birthDay
                     })
                     navigate('/')
                 } catch (error) {
