@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { PaperPlane } from "react-coolicons";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
@@ -13,6 +13,7 @@ import { Spinner } from "~/components/ui/spinner";
 import { getGoogleMapsDirectionUrl } from "~/lib/utils";
 import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
 import { useCreateGymAttendance } from "~/reactQuery/gymAttendance/hooks";
+import { useCreateDeposit } from "~/reactQuery/deposit/hooks";
 
 type reserveGymSteps = "trend" | "dateTime" | "checkout" | "result";
 const ReserveGym = () => {
@@ -25,6 +26,20 @@ const ReserveGym = () => {
     const [errors, setErrors] = useState<string[]>([]);
     const [attendanceReference, setAttendanceReference] = useState<string>("");
     const { mutateAsync: reserve, isPending: reserveLoading } = useCreateGymAttendance()
+    const { mutateAsync: createDeposit, isPending: depositLoading } = useCreateDeposit();
+
+    // Resolve the selected session price (mirrors Checkout logic)
+    const sessionPrice = useMemo(() => {
+        if (!SelectedTrend || !selectedSessionId || !gym) return 0;
+        const [trendId, gender] = SelectedTrend.split("-");
+        const trend = gym.trends.find(t => t.gymTrendId === trendId);
+        const schedule = gender === "men" ? trend?.men : gender === "women" ? trend?.women : undefined;
+        for (const day of schedule ?? []) {
+            const session = day.sessions?.find(s => s.gymSessionId === selectedSessionId);
+            if (session) return session.price ?? 0;
+        }
+        return 0;
+    }, [SelectedTrend, selectedSessionId, gym]);
     const steps: { name: reserveGymSteps, title: string, component: ReactNode }[] = [{
         name: "trend",
         title: t("gym.reserve.steps.trend"),
@@ -85,6 +100,9 @@ const ReserveGym = () => {
     }
 
     const handleReserve = async () => {
+        // Mock: charge user's wallet with the selected session price before reserving
+        await createDeposit({ amount: sessionPrice });
+
         const response = await reserve({
             gymId: gym?.gymId || "",
             gymTrendId: SelectedTrend?.split('-')[0] || "",
@@ -155,7 +173,7 @@ const ReserveGym = () => {
                 <Button
                     onClick={handleNext}
                     className="text-white font-medium w-full h-12 rounded-full bg-primary-main"
-                    disabled={reserveLoading}
+                    disabled={reserveLoading || depositLoading}
                 >
                     {
                         reserveLoading ?
