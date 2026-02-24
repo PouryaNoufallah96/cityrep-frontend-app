@@ -24,7 +24,6 @@ const SelectTrend = ({
     };
 
     const hasSessions = (schedule: GymDaySchedule[]) => {
-        console.log("sc", schedule)
         if (!schedule || schedule?.length === 0) return false;
         return schedule.some(day => day.sessions?.length);
     }
@@ -33,7 +32,6 @@ const SelectTrend = ({
     const buildTrendButtons = (trends: GymTrend[]): TrendButtonItem[] => {
         return trends.flatMap(trend => {
             const items: TrendButtonItem[] = [];
-            console.log(trend);
             if (hasSessions(trend.men)) {
                 items.push({
                     id: `${trend.gymTrendId}-men`,
