@@ -23,14 +23,17 @@ const SelectTrend = ({
         return prices.length ? Math.min(...prices) : 0;
     };
 
-    const hasSessions = (schedule: GymDaySchedule[]) =>
-        schedule.some(day => day.sessions?.length);
+    const hasSessions = (schedule: GymDaySchedule[]) => {
+        console.log("sc", schedule)
+        if (!schedule || schedule?.length === 0) return false;
+        return schedule.some(day => day.sessions?.length);
+    }
 
 
     const buildTrendButtons = (trends: GymTrend[]): TrendButtonItem[] => {
         return trends.flatMap(trend => {
             const items: TrendButtonItem[] = [];
-
+            console.log(trend);
             if (hasSessions(trend.men)) {
                 items.push({
                     id: `${trend.gymTrendId}-men`,
@@ -38,7 +41,7 @@ const SelectTrend = ({
                     gender: "Male",
                     title: `${trend.title} (آقایان)`,
                     price: calculateMinPrice(trend.men),
-                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" +trend.trendIconUrl,
+                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl,
                 });
             }
 
@@ -49,7 +52,7 @@ const SelectTrend = ({
                     gender: "Female",
                     title: `${trend.title} (بانوان)`,
                     price: calculateMinPrice(trend.women),
-                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" +trend.trendIconUrl,
+                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl,
                 });
             }
 
