@@ -2,16 +2,18 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+RUN corepack enable && corepack prepare pnpm@11.8.0 --activate
+
 # Copy dependencies first
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile || yarn install
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Copy full project
 COPY . .
 
 # Set env and build
 ENV NODE_ENV=production
-RUN echo "🚀 Building project..." && yarn build && \
+RUN echo "🚀 Building project..." && pnpm build && \
     echo "✅ Build complete. Contents:" && ls -R build || true
 
 # --- Stage 2: Serve via Nginx ---
