@@ -1,10 +1,6 @@
 import { axiosInstance } from "~/lib/axiosInstance";
 import type { Gender, GymAddress } from "~/types";
 
-/* =======================
-   Auth – DTOs
-======================= */
-
 export interface GetVerificationCodeForAuthenticationRequest {
     phoneNumber: string;
 }
@@ -32,18 +28,16 @@ export interface RenewTokenResult {
     hasProfile: boolean;
 }
 
-/* =======================
-   Profile – DTOs
-======================= */
-export type ClientStatus = "Active" | "Inactive" | "Blocked";
-export type ClientRole = "Client" | "Admin" | "Coach";
+export type ClientStatus = "Active" | "Ban" | "NotVerified";
+export type ClientRole = "Client" | "GymOwner" | "Admin";
 
 export interface ClientResult {
     phoneNumber: string;
 
     lastName: string;
     firstName: string;
-    gender: Gender;
+    gender?: Gender;
+    isProfileCompleted: boolean;
 
     status: ClientStatus;
     role: ClientRole;
@@ -68,22 +62,17 @@ export interface ClientProfileDataUpdate {
 }
 
 export interface ChangePhoneNumberRequest {
-    newPhoneNumber: string;
+    phoneNumber: string;
 }
 
 export interface VerifyChangePhoneNumberRequest {
-    newPhoneNumber: string;
     verificationCode: string;
 }
 
-/* =======================
-   Services
-======================= */
 const clientId: string = import.meta.env.VITE_CLIENT_ID || "";
 const clientSecret: string = import.meta.env.VITE_CLIENT_SECRET || "";
 
 export const clientAuthServices = {
-    // 🔹 Request verification code
     requestVerificationCode: async (
         data: GetVerificationCodeForAuthenticationRequest
     ): Promise<GetVerificationCodeForAuthenticationResult> => {
@@ -96,10 +85,9 @@ export const clientAuthServices = {
                 clientSecret
             }
         );
-        return res.data;
+        return res.data.data;
     },
 
-    // 🔹 Verify code & login
     verifyAndLogin: async (
         data: VerifyAndLoginWithVerificationCodeRequest
     ): Promise<RenewTokenResult> => {
@@ -113,19 +101,16 @@ export const clientAuthServices = {
         return res.data;
     },
 
-    // 🔹 Renew access token
     renewToken: async (): Promise<RenewTokenResult> => {
         const res = await axiosInstance.get("/Client/RenewToken");
         return res.data;
     },
 
-    // 🔹 Get authenticated client profile
     getClientData: async (): Promise<ClientResult> => {
         const res = await axiosInstance.get("/Client/GetClientData");
         return res.data.data;
     },
 
-    // 🔹 Create / update profile
     upsertProfileData: async (
         data: ClientProfileDataUpdate
     ): Promise<ClientResult> => {
@@ -133,10 +118,9 @@ export const clientAuthServices = {
             "/Client/UpsertProfileData",
             data
         );
-        return res.data;
+        return res.data.data;
     },
 
-    // 🔹 Request phone number change
     requestChangePhoneNumber: async (
         data: ChangePhoneNumberRequest
     ): Promise<boolean> => {
@@ -144,10 +128,9 @@ export const clientAuthServices = {
             "/Client/RequestChangePhoneNumber",
             data
         );
-        return res.data;
+        return res.data.data;
     },
 
-    // 🔹 Verify phone number change
     verifyChangePhoneNumber: async (
         data: VerifyChangePhoneNumberRequest
     ): Promise<boolean> => {
@@ -155,9 +138,9 @@ export const clientAuthServices = {
             "/Client/VerifyChangePhoneNumber",
             data
         );
-        return res.data;
+        return res.data.data;
     },
-    // 🔹 Get or create wallet
+
     getOrCreateWallet: async (): Promise<WalletResult> => {
         const res = await axiosInstance.get(
             "/Wallet/GetOrCreateWallet"

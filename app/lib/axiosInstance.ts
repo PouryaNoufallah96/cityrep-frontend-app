@@ -6,9 +6,6 @@ import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_API;
 
-/**
- * Generate headers with security HMAC
- */
 const makeHeader = (
     hasBody: boolean = false,
     customHeaders?: Record<string, string>
@@ -32,9 +29,6 @@ const makeHeader = (
     return headers;
 };
 
-/**
- * Axios instance with interceptors
- */
 export const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     timeout: 15000,
@@ -60,8 +54,11 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        toast.error(error.response?.data?.Message || "An error occurred");
-        // optional: handle 401 or other errors globally
+        toast.error(
+            error.response?.data?.message
+            || error.response?.data?.Message
+            || "An error occurred"
+        );
         if (error.response?.status === 401) {
             console.warn("Unauthorized - token may be invalid or expired");
             logoutUser();
@@ -75,12 +72,7 @@ axiosInstance.interceptors.response.use(
 function logoutUser() {
     if (typeof window === "undefined") return;
 
-    // Remove specific key
     localStorage.removeItem(import.meta.env.VITE_TOKEN_KEY);
-
-    // OR clear all session data:
     localStorage.clear();
-
-    // Redirect to auth page
-    window.location.href = "/auth"; // or "/login"
+    window.location.href = "/auth";
 }

@@ -9,6 +9,7 @@ import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
 import { Spinner } from "~/components/ui/spinner";
 import { useTranslation } from "react-i18next";
 import { PaperPlane } from "react-coolicons";
+import TrendIcon from "~/components/shared/TrendIcon";
 
 
 const GymPage = () => {
@@ -16,7 +17,7 @@ const GymPage = () => {
     const { gym_id } = useParams();
     const sliderRef = useRef<Slider>(null)
     const [currentSlide, setCurrentSlide] = useState(0)
-    const { data: gym } = useGetGymBySlug(gym_id || "")
+    const { data: gym, isLoading } = useGetGymBySlug(gym_id || "")
     const settings = {
         dots: false,
         infinite: true,
@@ -32,10 +33,28 @@ const GymPage = () => {
         afterChange: (current: number) => setCurrentSlide(current)
 
     };
+    if (isLoading) {
+        return (
+            <div className="flex h-[100svh] w-full items-center justify-center bg-[#2B2B2B]">
+                <Spinner />
+            </div>
+        );
+    }
+
+    if (!gym) {
+        return (
+            <div className="flex h-[100svh] w-full flex-col bg-[#2B2B2B]">
+                <Navigator className="px-4" title="باشگاه" />
+                <div className="flex flex-1 items-center justify-center px-4 text-center text-white">
+                    باشگاهی یافت نشد!
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full h-[100svh] overflow-auto my-scroll bg-[#2B2B2B]">
-            {gym ?
-                <div className="w-full h-[100svh] flex items-center justify-between flex-col">
+            <div className="w-full h-[100svh] flex items-center justify-between flex-col">
                     <div className="w-full">
                         <Navigator className="px-4 sticky top-0 z-[10] bg-[#2B2B2B]" title={gym.title} leftComponent={
                             <div className="text-xs px-2 py-1 border border-secondary-main text-secondary-main fill-secondary-main flex items-center justify-center gap-2 w-max rounded-full">
@@ -64,17 +83,29 @@ const GymPage = () => {
                                 }
                             </div>
                             <div className="absolute flex items-center justify-center gap-3 right-4 -bottom-[14px]">
-                                <Link to={getGoogleMapsDirectionUrl(gym.address.geoLocation.latitude, gym.address.geoLocation.longitude)} className="w-11 h-11 rounded-full border border-secondary-main text-secodary-main flex items-center justify-center bg-[#3B4533]">
+                                <Link
+                                    to={getGoogleMapsDirectionUrl(
+                                        gym.address.geoLocation.latitude,
+                                        gym.address.geoLocation.longitude,
+                                    )}
+                                    target="_blank"
+                                    aria-label={`مسیریابی به ${gym.title}`}
+                                    className="w-11 h-11 rounded-full border border-secondary-main flex items-center justify-center bg-[#3B4533]"
+                                >
                                     <PaperPlane className="text-secondary-main rotate-45" />
                                 </Link>
-                                <Link to={`tel:${gym.contact.phoneNumber}`} className="w-11 h-11 rounded-full border border-secondary-main text-secodary-main flex items-center justify-center bg-[#3B4533]">
+                                <Link
+                                    to={`tel:${gym.contact.phoneNumber}`}
+                                    aria-label={`تماس با ${gym.title}`}
+                                    className="w-11 h-11 rounded-full border border-secondary-main flex items-center justify-center bg-[#3B4533]"
+                                >
                                     <Phone className="text-secondary-main" />
                                 </Link>
                             </div>
                         </div>
-                        <div className="mt-[54px] flex items-center justify-between px-4 text-primary-text text-[20px]">
-                            <p>{gym.title}</p>
-                            <p>از {getWeekGlobalMinPrice(gym.weekPrices)?.toLocaleString("fa-IR")} تومان</p>
+                        <div className="mt-[54px] flex items-center justify-between px-4 text-[20px]">
+                            <p className="text-primary-700">{gym.title}</p>
+                            <p className="text-white">از {getWeekGlobalMinPrice(gym.weekPrices)?.toLocaleString("fa-IR")} تومان</p>
                         </div>
 
 
@@ -83,7 +114,16 @@ const GymPage = () => {
                             <GymLabel icon={<User />} label={gym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")} />
                             {/* <GymLabel icon={<Clock />} label={gym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")} /> */}
                             <GymLabel icon={<Phone />} label={gym.contact?.phoneNumber} />
-                            <GymLabel icon={<Map />} label={gym.address.address} />
+                            <Link
+                                to={getGoogleMapsDirectionUrl(
+                                    gym.address.geoLocation.latitude,
+                                    gym.address.geoLocation.longitude,
+                                )}
+                                target="_blank"
+                                aria-label={`مسیریابی به ${gym.title}`}
+                            >
+                                <GymLabel icon={<Map />} label={gym.address.address} />
+                            </Link>
 
                         </div>
 
@@ -97,7 +137,11 @@ const GymPage = () => {
 
                                         <div key={trend.gymTrendId} className="flex flex-col items-center gap-2">
                                             <div className="w-16 h-16 bg-secondary-main/8 rounded-full flex items-center justify-center">
-                                                <img className="w-6 h-6 object-contain" src={trend.trendIconUrl ? import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl : "/images/mock/trendDefaultIcon.png"} alt={trend.title} />
+                                                <TrendIcon
+                                                    title={trend.title}
+                                                    fileId={trend.trendIconUrl}
+                                                    className="w-6 h-6 object-contain text-secondary-main"
+                                                />
                                             </div>
                                             <p className="text-white">
                                                 {trend.title}
@@ -107,15 +151,10 @@ const GymPage = () => {
                                 }
                             </div>
                         </div>
-                        <Link to={`reserve`} className="text-white flex items-center justify-center font-medium w-full h-12 rounded-full bg-[#532FFF]"> مشاهده زمان بندی</Link>
+                        <Link to={`reserve`} className="text-white flex items-center justify-center font-medium w-full h-12 rounded-full bg-primary-main"> مشاهده زمان بندی</Link>
                     </div>
 
                 </div>
-                :
-                <div>
-                    <Spinner />
-                </div>
-            }
         </div>
     )
 }

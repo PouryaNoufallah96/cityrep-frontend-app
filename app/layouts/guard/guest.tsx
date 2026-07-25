@@ -1,9 +1,18 @@
 import {Outlet} from "react-router";
 import {useAuthGuard} from "~/hooks/useAuthGuard";
+import AuthGuardError from "./AuthGuardError";
 
 const GuestLayout = () => {
-    const checked = useAuthGuard("guest");
-    if (!checked || checked === undefined) return null;
+    const { allowed, hasProfileError, retryProfile, isRetrying } = useAuthGuard("guest");
+    if (hasProfileError) {
+        return (
+            <AuthGuardError
+                isRetrying={isRetrying}
+                onRetry={() => void retryProfile()}
+            />
+        );
+    }
+    if (!allowed) return null;
     return <Outlet/>;
 };
 

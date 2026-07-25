@@ -3,7 +3,8 @@ import TextInput from "~/components/ui/TextInput";
 import { useState } from "react";
 import PriceOptionButton from "~/components/wallet/PriceOptionButton";
 import { Button } from "~/components/ui/button";
-import { useCreateDeposit } from "~/reactQuery/deposit/hooks";
+import { useCreateDeposit, useVerifyDeposit } from "~/reactQuery/deposit/hooks";
+import { DepositState } from "~/reactQuery/deposit/services";
 import { Spinner } from "~/components/ui/spinner";
 import { useNavigate } from "react-router";
 
@@ -13,10 +14,31 @@ const ChargeWalletPage = () => {
     const navigate = useNavigate();
     const [price, setPrice] = useState<string>("");
     const { mutateAsync: createDeposit, isPending: createDepositLoading } = useCreateDeposit()
+    const { mutateAsync: verifyDeposit, isPending: verifyDepositLoading } = useVerifyDeposit()
     const handlePay = async () => {
-        const res = await createDeposit({ amount: parseInt(price) });
-        console.log(res)
-        navigate(`/wallet/charge/receipt?status=success&amount=${price}`); //todo: get real status from response
+        const amount = parseInt(price);
+        let depositReference: string | undefined;
+
+        try {
+            depositReference = await createDeposit({ amount });
+            const result = await verifyDeposit({ depositReference });
+
+            navigate("/wallet/charge/receipt", {
+                state: {
+                    result,
+                    amount,
+                    failed: result.state !== DepositState.Done,
+                },
+            });
+        } catch {
+            navigate("/wallet/charge/receipt", {
+                state: {
+                    failed: true,
+                    depositReference,
+                    amount,
+                },
+            });
+        }
     }
     return (
         <div className="w-full h-[100svh] bg-[#121314] p-4">
@@ -39,11 +61,11 @@ const ChargeWalletPage = () => {
                     </div>
                 </div>
                 <Button onClick={() => handlePay()}
-                    disabled={createDepositLoading}
+                    disabled={createDepositLoading || verifyDepositLoading}
                     className="w-full max-w-[300px] h-12 bg-primary-main !opacity-100 rounded-full mt-10 !flex  text-white">
 
                     {
-                        createDepositLoading ? <Spinner /> : "پرداخت و شارژ کیف پول"
+                        createDepositLoading || verifyDepositLoading ? <Spinner /> : "پرداخت و شارژ کیف پول"
                     }
                 </Button>
 

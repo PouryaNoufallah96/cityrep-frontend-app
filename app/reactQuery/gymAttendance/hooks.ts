@@ -1,25 +1,25 @@
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     gymAttendanceServices,
     type CreateGymAttendanceUpdate,
     type GetClientGymAttendanceListUpdate,
     type AddRateUpdate,
+    type ClientGymAttendanceItem,
     type GetClientGymAttendanceListResult,
+    GymAttendanceState,
 } from "./services";
 
-/* =======================
-   Gym Attendance hooks
-======================= */
+export const useCreateGymAttendance = () => {
+    const queryClient = useQueryClient();
 
-// 🔹 Create attendance (check-in)
-export const useCreateGymAttendance = () =>
-    useMutation({
+    return useMutation({
         mutationKey: ["createGymAttendance"],
         mutationFn: (data: CreateGymAttendanceUpdate) =>
             gymAttendanceServices.createByClient(data),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["clientGymAttendanceList"] }),
     });
-
-// 🔹 Get client attendance list
+};
 
 export const useGetClientGymAttendanceListInfinite = (
     params: Omit<GetClientGymAttendanceListUpdate, "pagination">,
@@ -45,10 +45,47 @@ export const useGetClientGymAttendanceListInfinite = (
         }
     });
 
-// 🔹 Add / update rate
-export const useUpsertGymAttendanceRate = () =>
-    useMutation({
+export const useGetClientGymAttendanceStatus = (
+    attendanceReference: string,
+    enabled: boolean
+) =>
+    useQuery<ClientGymAttendanceItem | undefined, Error>({
+        queryKey: ["clientGymAttendanceStatus", attendanceReference],
+        queryFn: async () => {
+            const result = await gymAttendanceServices.getClientList({
+                pagination: {
+                    page: 1,
+                    size: 1,
+                },
+                states: [
+                    GymAttendanceState.Reserved,
+                    GymAttendanceState.Used,
+                ],
+                search: attendanceReference,
+            });
+
+            return result.data.find(
+                item => item.gymAttendanceReference === attendanceReference
+            );
+        },
+        enabled: enabled && !!attendanceReference,
+        refetchInterval: enabled ? 2000 : false,
+        refetchOnWindowFocus: false,
+    });
+
+export const useUpsertGymAttendanceRate = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
         mutationKey: ["upsertGymAttendanceRate"],
         mutationFn: (data: AddRateUpdate) =>
             gymAttendanceServices.upsertRate(data),
+        onSuccess: (result) => {
+            if (!result.isSuccess) return;
+
+            return queryClient.invalidateQueries({
+                queryKey: ["clientGymAttendanceList"],
+            });
+        },
     });
+};

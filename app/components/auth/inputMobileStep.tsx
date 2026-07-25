@@ -38,7 +38,7 @@ const InputMobileStep = ({ mobile, setMobile, error, handleStepChange, isLoading
                     maxLength={11}
                     value={mobile}
                     onChange={handleChange}
-                    placeholder="09123456789"
+                    placeholder="شماره موبایل خود را وارد کنید."
                     error={error}
                     icon={<Mobile />}
                     onClear={() => setMobile("")}

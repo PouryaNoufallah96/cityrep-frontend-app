@@ -1,15 +1,45 @@
 import { Banknote, CalendarDays, Clock } from "lucide-react";
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import CheckoutItem from "~/components/gym/reserve/CheckoutItem";
-import { dateTimes, trends } from "~/constants/mock";
-import { formatMinutes, getJalaliDateLabel, getRelativeDayLabel } from "~/lib/utils";
-import type { DayOfWeek, GymDaySchedule, GymResult, GymSession, GymTrend } from "~/reactQuery/gym/services";
+import { formatMinutes, getJalaliDateLabel } from "~/lib/utils";
+import type { DayOfWeek, GymResult, GymSession } from "~/reactQuery/gym/services";
 
 
-type FoundSession = {
+export type FoundSession = {
     session: GymSession;
     dayOfWeek: DayOfWeek;
+};
+
+export const findSelectedSession = (
+    gym: GymResult | undefined,
+    selectedTrend: string | null,
+    selectedSessionId: string | null,
+): FoundSession | null => {
+    if (!gym || !selectedTrend || !selectedSessionId) return null;
+
+    const [trendId, gender] = selectedTrend.split("-");
+    const trend = gym.trends.find(item => item.gymTrendId === trendId);
+    const schedule =
+        gender === "men"
+            ? trend?.men
+            : gender === "women"
+                ? trend?.women
+                : undefined;
+
+    for (const day of schedule ?? []) {
+        const session = day.sessions?.find(
+            item => item.gymSessionId === selectedSessionId,
+        );
+
+        if (session) {
+            return {
+                session,
+                dayOfWeek: day.dayOfWeek,
+            };
+        }
+    }
+
+    return null;
 };
 
 const Checkout = ({
@@ -22,49 +52,15 @@ const Checkout = ({
     gym?: GymResult
 
 }) => {
-    const [trendId, gender] = SelectedTrend?.split("-") ?? [];
-    const { t } = useTranslation();
+    const [trendId] = SelectedTrend?.split("-") ?? [];
     const trend = gym?.trends.find(
-        t => t.gymTrendId === trendId
+        (item) => item.gymTrendId === trendId
     );
-
-    const findSessionInSchedule = (
-        schedule: GymDaySchedule[] | undefined,
-        sessionId: string | null
-    ): FoundSession | null => {
-        if (!schedule || !sessionId) return null;
-
-        for (const day of schedule) {
-            const session = day.sessions?.find(
-                s => s.gymSessionId === sessionId
-            );
-            if (session) {
-                return {
-                    session,
-                    dayOfWeek: day.dayOfWeek,
-                };
-            }
-        }
-
-        return null;
-    };
-
-    const schedule =
-        gender === "men"
-            ? trend?.men
-            : gender === "women"
-                ? trend?.women
-                : undefined;
-
 
     const foundSession = useMemo(
-        () => findSessionInSchedule(schedule, selectedSessionId),
-        [schedule, selectedSessionId]
+        () => findSelectedSession(gym, SelectedTrend, selectedSessionId),
+        [SelectedTrend, gym, selectedSessionId]
     );
-
-    // const dateLabel = foundSession
-    //     ? getRelativeDayLabel(foundSession.dayOfWeek)
-    //     : "";
 
     const dateLabel = foundSession
         ? getJalaliDateLabel(foundSession.dayOfWeek)
@@ -75,11 +71,6 @@ const Checkout = ({
             foundSession.session.to
         )}`
         : "";
-
-
-
-    console.log(trend, schedule, gym, selectedSessionId, SelectedTrend)
-
 
     return <div className="w-full bg-[#121314] rounded-[16px] flex flex-col gap-4 p-4">
         <div className="bg-primary-700/12 w-full rounded-[10px] p-4 flex items-center justify-between">
@@ -94,7 +85,7 @@ const Checkout = ({
         <CheckoutItem
             icon={<CalendarDays className="text-[#A0A0A0] w-6 h-6 min-w-[24px]" />}
             label="تاریخ"
-            value={t(`week.${foundSession?.dayOfWeek}`) +" "+ dateLabel}
+            value={dateLabel}
         />
         <CheckoutItem
             icon={<Clock className="text-[#A0A0A0] w-6 h-6 min-w-[24px]" />}

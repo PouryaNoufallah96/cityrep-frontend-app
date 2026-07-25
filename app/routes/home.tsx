@@ -1,7 +1,7 @@
-import { Filter, List, Map, MapPin, Search, Star, User } from "lucide-react";
-import { useState } from "react";
-import MapComponent from "~/components/homepage/MapComponent"
-import { useNavigate } from "react-router";
+import { Check, List, MapPin, XIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import MapComponent from "~/components/homepage/MapComponent";
+import { useLocation, useNavigate } from "react-router";
 import GymCard from "~/components/homepage/GymCard";
 import SearchInput from "~/components/ui/SearchInput";
 import { GymCardSkeleton } from "~/components/homepage/GymCardSkeleton";
@@ -11,10 +11,11 @@ import { getWeekGlobalMinPrice } from "~/lib/utils";
 import { useDebounce } from "~/hooks/useDebounce";
 import type { Gender, GymLevel } from "~/types";
 import { HomeFilterSheet } from "~/components/homepage/HomeFilterSheet";
+import type { GymDiscoveryFilter } from "~/reactQuery/gym/services";
 
-
-
-
+type HomeLocationState = {
+    ratingSuccessTitle?: string;
+};
 
 export default function Home() {
     const [search, setSearch] = useState<string>("")
@@ -26,14 +27,21 @@ export default function Home() {
 
     const [showType, setShowType] = useState<"list" | "map">("list")
     const navigate = useNavigate()
-    const { data: gyms, isLoading } = useGetGymsWithFilter({
-        pagination: {
-            page: 1,
-            size: 20
-        },
+    const location = useLocation()
+    const ratingSuccessTitle = (location.state as HomeLocationState | null)?.ratingSuccessTitle
+    const [isRatingBannerDismissed, setIsRatingBannerDismissed] = useState(false)
+    const showRatingSuccessBanner = !!ratingSuccessTitle && !isRatingBannerDismissed
+    const discoveryFilters = useMemo<GymDiscoveryFilter>(() => ({
         search: debouncedSearch || undefined,
         genders: selectedGenders.length > 0 ? selectedGenders : undefined,
         gymLevels: selectedLevels.length > 0 ? selectedLevels : undefined
+    }), [debouncedSearch, selectedGenders, selectedLevels])
+    const { data: gyms, isLoading } = useGetGymsWithFilter({
+        ...discoveryFilters,
+        pagination: {
+            page: 1,
+            size: 20
+        }
     })
     const { t } = useTranslation();
 
@@ -62,25 +70,56 @@ export default function Home() {
             );
         }
 
-        return gyms.data.data.map((gym) => (
-            <GymCard
-                key={gym.gymId}
-                image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + gym.images?.[0].imageUrl}
-                title={gym.title}
-                rating={gym.rate}
-                genderLabel={gym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}
-                workingHours={gym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")}
-                address={gym.address.address}
-                onClick={() => navigate(`gyms/${gym.slug}`)}
-                level={t("gym.level." + gym.level)}
-                price={getWeekGlobalMinPrice(gym.weekPrices)}
-            />
-        ));
+        return gyms.data.data.map((gym) => {
+            const isInactive = gym.state === "Inactive";
+
+            return (
+                <GymCard
+                    key={gym.gymId}
+                    image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + gym.images?.[0].imageUrl}
+                    title={gym.title}
+                    rating={gym.rate}
+                    rateCount={gym.rateCount}
+                    genderLabel={gym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}
+                    workingHours={gym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")}
+                    address={gym.address.address}
+                    onClick={isInactive ? undefined : () => navigate(`gyms/${gym.slug}`)}
+                    disabled={isInactive}
+                    level={t("gym.level." + gym.level)}
+                    price={getWeekGlobalMinPrice(gym.weekPrices)}
+                />
+            );
+        });
     };
 
     return (
         <div className="pt-4 w-full h-full">
-            <div className="w-full flex items-center justify-between">
+            {showRatingSuccessBanner && (
+                <div
+                    role="status"
+                    className="mb-4 flex min-h-14 w-full items-center gap-3 rounded-lg bg-success px-4 py-3 text-white"
+                >
+                    <Check
+                        aria-hidden="true"
+                        className="size-5 shrink-0 rounded-full bg-white p-0.5 text-success"
+                    />
+                    <p className="min-w-0 flex-1 text-sm font-medium leading-7">
+                        امتیاز «{ratingSuccessTitle}» با موفقیت ثبت شد.
+                    </p>
+                    <button
+                        type="button"
+                        aria-label="بستن پیام موفقیت امتیاز"
+                        className="flex size-8 shrink-0 items-center justify-center"
+                        onClick={() => {
+                            setIsRatingBannerDismissed(true)
+                            navigate(".", { replace: true, state: null })
+                        }}
+                    >
+                        <XIcon aria-hidden="true" className="size-5" />
+                    </button>
+                </div>
+            )}
+            <div className="relative z-[60] w-full flex items-center justify-between">
                 <SearchInput value={search} onChange={setSearch} />
                 <div className="flex items-center gap-4">
                     {showType === "list" && (
@@ -106,7 +145,7 @@ export default function Home() {
                     </div>
                     :
 
-                    <MapComponent />
+                    <MapComponent filters={discoveryFilters} />
             }
 
 

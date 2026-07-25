@@ -12,18 +12,10 @@ import type {
     Pagination
 } from "~/types";
 
-/* =======================
-   DTOs
-======================= */
-
-// 🔹 Get one gym
 export interface GymIdUpdate {
     gymId: string;
 }
 
-
-
-// 🔹 Gym filter
 export interface GymFilter {
     pagination?: Pagination;
     genders?: Gender[];
@@ -34,7 +26,8 @@ export interface GymFilter {
     nearest?: NearestFilter;
 }
 
-export type GymState = "NotVerified" | "Verified" | "Rejected";
+export type GymDiscoveryFilter = Pick<GymFilter, "search" | "genders" | "gymLevels">;
+export type GymState = "NotVerified" | "Active" | "Inactive" | "Ban";
 export type DayOfWeek =
     | "Saturday"
     | "Sunday"
@@ -45,9 +38,6 @@ export type DayOfWeek =
     | "Friday";
 
 export type TimeType = "Session" | "FreeTime";
-
-
-/* ---------------- Trends ---------------- */
 
 export interface GymDaySchedule {
     dayOfWeek: DayOfWeek;
@@ -62,27 +52,19 @@ export interface GymTrend {
     trendIconUrl?: string;
 }
 
-
-
-/* ---------------- Facilities ---------------- */
-
 export interface GymFacility {
     facilityId: string;
     title: string;
 }
 
-/* ---------------- Main Result ---------------- */
 export interface GymSession {
     gymSessionId: string;
     price: number;
     timeType: TimeType;
     from: number; // minutes
     to: number;   // minutes
-    capacity?: number; // optional (not always present)
+    capacity?: number;
 }
-
-
-
 
 export interface GymResult {
     gymId: string;
@@ -105,12 +87,11 @@ export interface GymResult {
 
     state: GymState;
     rate: number;
+    rateCount: number;
     createdMoment: string; // ISO
     upcomingClosures: GymClosure[];
 
 }
-
-
 
 export interface GymListData {
     data: GymResult[];
@@ -125,12 +106,7 @@ export interface GymListResult {
     message: string;
 }
 
-/* =======================
-   Services
-======================= */
-
 export const gymServices = {
-    // 🔹 Get one gym by id
     getOneGym: async (data: GymIdUpdate): Promise<GymResult> => {
         const res = await axiosInstance.post(
             "/Gym/GetOneGym",
@@ -139,7 +115,6 @@ export const gymServices = {
         return res.data.data;
     },
 
-    // 🔹 Get gyms with filters
     getGymsWithFilter: async (
         data: GymFilter
     ): Promise<GymListResult> => {
@@ -150,7 +125,6 @@ export const gymServices = {
         return res.data;
     },
 
-    // 🔹 Get gym full data by slug
     getGymDataBySlug: async (slug: string): Promise<GymResult> => {
         const res = await axiosInstance.post(
             "/Gym/GetGymDataBySlug",

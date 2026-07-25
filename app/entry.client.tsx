@@ -2,8 +2,7 @@ import { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { QueryClient } from "@tanstack/query-core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 startTransition(() => {
     const queryClient = new QueryClient({

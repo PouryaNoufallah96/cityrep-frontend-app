@@ -18,7 +18,7 @@ const CustomButton = ({ className, onClick, parentClassName, children, color, lo
             className={cn(
                 color === "secondary"
                     ? "from-secondary-500/8 via-secondary-500 to-secondary-500/8"
-                    : "from-primary-300/8 via-primary-300 to-primary-300/8",
+                    : "from-primary-glow/8 via-primary-glow to-primary-glow/8",
                 "backdrop-blur-2xl bg-linear-to-r p-px flex items-center justify-center",
                 parentClassName)}>
             <Button disabled={loading} onClick={onClick} variant={color === "secondary" ? "alter" : "main"} className={cn("w-full h-full", className)}>

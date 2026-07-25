@@ -1,19 +1,26 @@
-import { useState, useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { PaperPlane } from "react-coolicons";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { ExclamationIcon } from "~/assets/icons/exclamation";
-import Checkout from "~/components/gym/reserve/Checkout";
+import Checkout, { findSelectedSession } from "~/components/gym/reserve/Checkout";
 import Result from "~/components/gym/reserve/Result";
 import SelectDateTime from "~/components/gym/reserve/SelectDateTime";
 import SelectTrend from "~/components/gym/reserve/SelectTrend";
 import Navigator from "~/components/shared/Navigator";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
-import { getGoogleMapsDirectionUrl } from "~/lib/utils";
+import {
+    formatJalaliDate,
+    formatMinutes,
+    getGoogleMapsDirectionUrl,
+    getSessionEndDate,
+} from "~/lib/utils";
+import { DepositState } from "~/reactQuery/deposit/services";
+import { useVerifyDeposit } from "~/reactQuery/deposit/hooks";
 import { useGetGymBySlug } from "~/reactQuery/gym/hooks";
 import { useCreateGymAttendance } from "~/reactQuery/gymAttendance/hooks";
-import { useCreateDeposit } from "~/reactQuery/deposit/hooks";
+import { GymAttendanceState, type CreateymAttendanceResponse } from "~/reactQuery/gymAttendance/services";
 
 type reserveGymSteps = "trend" | "dateTime" | "checkout" | "result";
 const ReserveGym = () => {
@@ -26,20 +33,17 @@ const ReserveGym = () => {
     const [errors, setErrors] = useState<string[]>([]);
     const [attendanceReference, setAttendanceReference] = useState<string>("");
     const { mutateAsync: reserve, isPending: reserveLoading } = useCreateGymAttendance()
-    const { mutateAsync: createDeposit, isPending: depositLoading } = useCreateDeposit();
-
-    // Resolve the selected session price (mirrors Checkout logic)
-    const sessionPrice = useMemo(() => {
-        if (!SelectedTrend || !selectedSessionId || !gym) return 0;
-        const [trendId, gender] = SelectedTrend.split("-");
-        const trend = gym.trends.find(t => t.gymTrendId === trendId);
-        const schedule = gender === "men" ? trend?.men : gender === "women" ? trend?.women : undefined;
-        for (const day of schedule ?? []) {
-            const session = day.sessions?.find(s => s.gymSessionId === selectedSessionId);
-            if (session) return session.price ?? 0;
-        }
-        return 0;
-    }, [SelectedTrend, selectedSessionId, gym]);
+    const { mutateAsync: verifyDeposit, isPending: verifyDepositLoading } = useVerifyDeposit();
+    const selectedSession = useMemo(
+        () => findSelectedSession(gym, SelectedTrend, selectedSessionId),
+        [SelectedTrend, gym, selectedSessionId],
+    );
+    const sessionExpiresAt = selectedSession
+        ? getSessionEndDate(
+            selectedSession.dayOfWeek,
+            selectedSession.session.to,
+        )
+        : null;
     const steps: { name: reserveGymSteps, title: string, component: ReactNode }[] = [{
         name: "trend",
         title: t("gym.reserve.steps.trend"),
@@ -100,19 +104,50 @@ const ReserveGym = () => {
     }
 
     const handleReserve = async () => {
-        // Mock: charge user's wallet with the selected session price before reserving
-        await createDeposit({ amount: sessionPrice });
+        let response: CreateymAttendanceResponse;
 
-        const response = await reserve({
-            gymId: gym?.gymId || "",
-            gymTrendId: SelectedTrend?.split('-')[0] || "",
-            gymSessionId: selectedSessionId || ""
-        });
-        console.log("reservation response:", response);
-        if (response.state === "Reserved") {
+        try {
+            response = await reserve({
+                gymId: gym?.gymId || "",
+                gymTrendId: SelectedTrend?.split('-')[0] || "",
+                gymSessionId: selectedSessionId || ""
+            });
+        } catch {
+            setErrors(["رزرو انجام نشد. لطفاً دوباره تلاش کنید."]);
+            return;
+        }
+
+        if (response.state === GymAttendanceState.Reserved) {
             setAttendanceReference(response.attendanceReference);
             setStep("result");
+            return;
         }
+
+        if (response.state === GymAttendanceState.Pending) {
+            if (!response.depositReference) {
+                setErrors(["اطلاعات پرداخت رزرو دریافت نشد. لطفاً دوباره تلاش کنید."]);
+                return;
+            }
+
+            try {
+                const deposit = await verifyDeposit({
+                    depositReference: response.depositReference,
+                });
+
+                if (deposit.state === DepositState.Done) {
+                    setAttendanceReference(response.attendanceReference);
+                    setStep("result");
+                    return;
+                }
+
+                setErrors(["پرداخت رزرو ناموفق بود. لطفاً دوباره تلاش کنید."]);
+            } catch {
+                setErrors(["پرداخت رزرو ناموفق بود. لطفاً دوباره تلاش کنید."]);
+            }
+            return;
+        }
+
+        setErrors(["امکان تکمیل این رزرو وجود ندارد. لطفاً دوباره تلاش کنید."]);
     }
     const handleNext = () => {
         let flag = true;
@@ -167,16 +202,21 @@ const ReserveGym = () => {
                 {step === "checkout" && <div className="flex gap-2 bg-[#61481366] w-full p-4 rounded-[6px] mb-4 ">
                     <ExclamationIcon className="min-w-[24px]" />
                     <p className="text-sm text-[#FEF9C3]">
-                        سانسی که رزرو می‌کنید تنها در تاریخ و ساعت رزرو شده معتبر است و پس از آن منقضی می‌‍شود.
+                        {sessionExpiresAt && selectedSession
+                            ? t("gym.reserve.expiryWarning", {
+                                date: formatJalaliDate(sessionExpiresAt),
+                                time: formatMinutes(selectedSession.session.to),
+                            })
+                            : t("gym.reserve.expiryWarningFallback")}
                     </p>
                 </div>}
                 <Button
                     onClick={handleNext}
                     className="text-white font-medium w-full h-12 rounded-full bg-primary-main"
-                    disabled={reserveLoading || depositLoading}
+                    disabled={reserveLoading || verifyDepositLoading}
                 >
                     {
-                        reserveLoading ?
+                        reserveLoading || verifyDepositLoading ?
                             <Spinner />
                             :
                             step === "result" ? <div className="flex gap-2 items-center"><PaperPlane /><p>{t("gym.reserve.buttons.navigate")}</p></div> : step === "checkout" ?
@@ -184,6 +224,13 @@ const ReserveGym = () => {
                                 : t("gym.reserve.buttons.next")
                     }
                 </Button>
+                {step === "checkout" && errors.length > 0 && (
+                    <div className="text-destructive text-sm mt-2">
+                        {errors.map((error) => (
+                            <div key={error}>{error}</div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
 
