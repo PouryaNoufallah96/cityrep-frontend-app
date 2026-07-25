@@ -6,6 +6,13 @@ import { days } from "~/constants/global";
 import type { GymClosure, GymWeekPrice } from "~/types";
 import moment from "moment-jalaali";
 
+moment.loadPersian({
+  dialect: "persian-modern",
+  usePersianDigits: false,
+});
+
+const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -14,7 +21,6 @@ export const toCapitalized = (str: string): string =>
   str.charAt(0).toUpperCase() + str.slice(1);
 
 export const toEnglishDigits = (str: string): string => {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
   let result = str;
   for (let i = 0; i < 10; i++) {
@@ -149,29 +155,41 @@ export const formatMinutes = (m: number) => {
   return `${h}:${min.toString().padStart(2, "0")}`;
 };
 
-export const getJalaliDateLabel = (day: DayOfWeek): string => {
-  const days: DayOfWeek[] = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+export const formatJalaliDate = (value: string | number | Date) => {
+  const date = moment(value);
+  return date.isValid()
+    ? date
+      .format("dddd jD jMMMM")
+      .replace(/\d/g, digit => persianDigits[Number(digit)])
+    : "";
+};
 
+export const getSessionEndDate = (day: DayOfWeek, minutes: number) => {
+  const date = new Date();
+  const targetDayIndex = days.indexOf(day);
+
+  if (targetDayIndex === -1) return null;
+
+  const dayOffset = (targetDayIndex - date.getDay() + 7) % 7;
+  date.setHours(0, minutes, 0, 0);
+  date.setDate(date.getDate() + dayOffset);
+
+  return date;
+};
+
+export const getDateForDayOfWeek = (day: DayOfWeek): Date | null => {
   const todayIndex = new Date().getDay();
   const targetIndex = days.indexOf(day);
 
-  if (targetIndex === -1) return "";
+  if (targetIndex === -1) return null;
 
-  // distance from today (0 = today, 1 = tomorrow, ...)
-  const diff =
-    (targetIndex - todayIndex + 7) % 7;
+  const diff = (targetIndex - todayIndex + 7) % 7;
+  return moment().add(diff, "days").toDate();
+};
 
-  const date = moment().add(diff, "days");
-
-  return date.format("jYYYY/jMM/jDD");
+export const getJalaliDateLabel = (day: DayOfWeek): string => {
+  const date = getDateForDayOfWeek(day);
+  return date ? formatJalaliDate(date) : "";
 };
 
 

@@ -2,11 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { Clock } from "lucide-react";
 import GymHistoryCard from "~/components/history/GymHistoryCard";
 import RateSheet from "~/components/history/RateSheet";
-import { toast } from "sonner";
 import { useGetClientGymAttendanceListInfinite } from "~/reactQuery/gymAttendance/hooks";
-import type { ClientGymAttendanceItem } from "~/reactQuery/gymAttendance/services";
+import { GymAttendanceState, type ClientGymAttendanceItem } from "~/reactQuery/gymAttendance/services";
+import {
+    getLatestRateableAttendance,
+    sortAttendancesNewestFirst,
+} from "~/components/history/rating";
+import { formatJalaliDate, formatMinutes } from "~/lib/utils";
 
+const toPersianDigits = (value: string) =>
+    value.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 
+const formatHistoryDateTime = (sessionDate: string, gymStart: number) =>
+    `${formatJalaliDate(sessionDate)} | ${toPersianDigits(formatMinutes(gymStart))}`;
 
 export default function HistoryPage() {
     const [selectedGym, setSelectedGym] = useState<ClientGymAttendanceItem | null>();
@@ -17,14 +25,20 @@ export default function HistoryPage() {
         isFetchingNextPage,
         isLoading
     } = useGetClientGymAttendanceListInfinite({
-        states: ["Expired", "Failed", "Used"],
+        states: [
+            GymAttendanceState.Expired,
+            GymAttendanceState.Failed,
+            GymAttendanceState.Used,
+        ],
     });
 
     const listRef = useRef<HTMLDivElement>(null);
 
-    const attendances =
-        data?.pages.flatMap(page => page.data) ?? [];
-    // 🔹 Infinite scroll (safe)
+    const attendances = sortAttendancesNewestFirst(
+        data?.pages.flatMap(page => page.data) ?? [],
+    );
+    const latestRateableAttendance = getLatestRateableAttendance(attendances);
+
     useEffect(() => {
         const el = listRef.current;
         if (!el) return;
@@ -66,13 +80,13 @@ export default function HistoryPage() {
                                 </div>
                                 <div className="absolute top-[88px] left-3 w-40 h-[28px] bg-white/5 rounded-full" />
                             </div>
-                            <div className="w-full h-[60px]" /> {/* Spacer for Rate button positioning */}
+                            <div className="w-full h-[60px]" />
                         </div>
                     ))
                 ) : !attendances.length ? (
                     <div className="w-full h-[60vh] flex flex-col items-center justify-center text-center px-4">
-                        <div className="w-24 h-24 bg-[#121314] rounded-full flex items-center justify-center mb-6">
-                            <Clock className="text-secondary-main w-10 h-10 opacity-70" />
+                        <div className="mb-6 flex size-24 items-center justify-center rounded-full border border-secondary-main">
+                            <Clock className="size-10 text-secondary-main" />
                         </div>
                         <p className="text-white font-bold text-lg mb-2">سابقه‌ای یافت نشد!</p>
                         <p className="text-white/50 text-sm max-w-[250px]">
@@ -86,9 +100,13 @@ export default function HistoryPage() {
                                 key={item.gymAttendanceId}
                                 image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + item.gymImageUrl}
                                 title={item.gymTitle}
-                                date={new Date(item.sessionDate).toLocaleString("fa-IR")}
+                                date={formatHistoryDateTime(item.sessionDate, item.gymStart)}
                                 address={item.gymAddress?.address || ""}
-                                handleRate={() => setSelectedGym(item)}
+                                handleRate={
+                                    item.gymAttendanceId === latestRateableAttendance?.gymAttendanceId
+                                        ? () => setSelectedGym(item)
+                                        : undefined
+                                }
                             />
                         ))}
 
@@ -101,15 +119,17 @@ export default function HistoryPage() {
                 )}
             </div>
 
-            {selectedGym && <RateSheet
-                handleRate={(rate) => {
-                    console.log("rate", rate);
-                    toast.success(`امتیاز باشگاه ${selectedGym?.gymTitle} ثبت شد`)
-
-                    setSelectedGym(undefined)
-                }}
-                image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + selectedGym?.gymImageUrl} title={selectedGym?.gymTitle} open={!!selectedGym}
-                handleOpenChange={() => setSelectedGym(undefined)} />}
+            {selectedGym && (
+                <RateSheet
+                    gymAttendanceId={selectedGym.gymAttendanceId}
+                    image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + selectedGym.gymImageUrl}
+                    title={selectedGym.gymTitle}
+                    open={!!selectedGym}
+                    handleOpenChange={(open) => {
+                        if (!open) setSelectedGym(undefined);
+                    }}
+                />
+            )}
 
         </div>
     )

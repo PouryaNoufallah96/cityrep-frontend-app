@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     clientAuthServices,
     type GetVerificationCodeForAuthenticationRequest,
@@ -8,11 +8,6 @@ import {
     type VerifyChangePhoneNumberRequest,
 } from "./services";
 
-/* =======================
-   Auth hooks
-======================= */
-
-// 🔹 Request verification code
 export const useRequestVerificationCode = () =>
     useMutation({
         mutationKey: ["requestVerificationCode"],
@@ -20,7 +15,6 @@ export const useRequestVerificationCode = () =>
             clientAuthServices.requestVerificationCode(data),
     });
 
-// 🔹 Verify code & login
 export const useVerifyAndLogin = () =>
     useMutation({
         mutationKey: ["verifyAndLogin"],
@@ -29,37 +23,36 @@ export const useVerifyAndLogin = () =>
 
     });
 
-// 🔹 Renew token
 export const useRenewToken = () =>
     useMutation({
         mutationKey: ["renewToken"],
         mutationFn: () => clientAuthServices.renewToken(),
     });
 
-/* =======================
-   Profile hooks
-======================= */
-
-// 🔹 Get client profile
-export const useGetClientData = () =>
+export const useGetClientData = (enabled = true) =>
     useQuery({
         queryKey: ["getClientData"],
         queryFn: () => clientAuthServices.getClientData(),
+        enabled,
         staleTime: 0,
         gcTime: 0,
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
     });
 
-// 🔹 Upsert profile data
-export const useUpsertProfileData = () =>
-    useMutation({
+export const useUpsertProfileData = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
         mutationKey: ["upsertProfileData"],
         mutationFn: (data: ClientProfileDataUpdate) =>
             clientAuthServices.upsertProfileData(data),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["getClientData"] });
+        },
     });
+};
 
-// 🔹 Request phone change
 export const useRequestChangePhoneNumber = () =>
     useMutation({
         mutationKey: ["requestChangePhoneNumber"],
@@ -67,13 +60,18 @@ export const useRequestChangePhoneNumber = () =>
             clientAuthServices.requestChangePhoneNumber(data),
     });
 
-// 🔹 Verify phone change
-export const useVerifyChangePhoneNumber = () =>
-    useMutation({
+export const useVerifyChangePhoneNumber = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
         mutationKey: ["verifyChangePhoneNumber"],
         mutationFn: (data: VerifyChangePhoneNumberRequest) =>
             clientAuthServices.verifyChangePhoneNumber(data),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["getClientData"] });
+        },
     });
+};
 
 
 export const useGetOrCreateWallet = () =>

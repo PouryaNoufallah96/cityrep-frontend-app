@@ -1,32 +1,46 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "@neshan-maps-platform/leaflet";
 import "@neshan-maps-platform/leaflet/dist/leaflet.css";
 import GymCard from "~/components/homepage/GymCard";
 import { useNavigate } from "react-router";
-import type { GymFilter, GymResult } from "~/reactQuery/gym/services";
+import type { GymDiscoveryFilter, GymFilter, GymResult } from "~/reactQuery/gym/services";
 import { useGetGymsWithFilter } from "~/reactQuery/gym/hooks";
 import { useDebounce } from "~/hooks/useDebounce";
 import { boundsToNearestFilter, getWeekGlobalMinPrice } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 
 
-const MapComponent = () => {
+type MapComponentProps = {
+    filters: GymDiscoveryFilter;
+};
+
+const MapComponent = ({ filters }: MapComponentProps) => {
     const mapRef = useRef<L.Map | null>(null);
     const markersRef = useRef<L.Marker[]>([]);
     const { t } = useTranslation();
     const [selectedGym, setSelectedGym] = useState<GymResult | null>(null);
     const navigate = useNavigate()
-    const [filters, setFilters] = useState<GymFilter>({});
+    const [nearest, setNearest] = useState<GymFilter["nearest"]>();
+    const [mapRevision, setMapRevision] = useState(0);
 
-    // 🔹 debounce map-based filters
-    const debouncedFilters = useDebounce(filters, 600);
+    const debouncedNearest = useDebounce(nearest, 600);
+    const queryFilters = useMemo<GymFilter>(() => ({
+        ...filters,
+        nearest: debouncedNearest,
+        pagination: { page: 1, size: 20 },
+    }), [debouncedNearest, filters]);
 
-    // 🔹 fetch gyms
-    const { data: gyms } = useGetGymsWithFilter(debouncedFilters);
+    const { data: gyms } = useGetGymsWithFilter(queryFilters);
 
     useEffect(() => {
         if (mapRef.current) return;
 
+        let isMounted = true;
+        const handleMaptypeSwitched = () => {
+            if (isMounted) {
+                setMapRevision((value) => value + 1);
+            }
+        };
         const map = new L.Map("neshan-map", {
             key: "web.59e7c4d7f7ab4ab2a22c05b35fe88459",
             maptype: "neshan",
@@ -35,62 +49,75 @@ const MapComponent = () => {
             center: [35.7214889, 51.3473951],
             zoom: 11,
             zoomControl: false,
+            onMaptypeSwitched: handleMaptypeSwitched,
         } as any);
 
         mapRef.current = map;
+        setMapRevision((value) => value + 1);
 
-        // 🔹 initial filter from map view
-        setFilters({
-            nearest: boundsToNearestFilter(map),
-            pagination: { page: 1, size: 20 },
-        });
+        setNearest(boundsToNearestFilter(map));
 
-        // 🔹 update filter when map stops moving
-        map.on("moveend", () => {
-            setFilters((prev) => ({
-                ...prev,
-                nearest: boundsToNearestFilter(map),
-            }));
-        });
+        const handleMoveEnd = () => {
+            setNearest(boundsToNearestFilter(map));
+        };
+        map.on("moveend", handleMoveEnd);
+
+        return () => {
+            isMounted = false;
+            map.off("moveend", handleMoveEnd);
+            markersRef.current.forEach((marker) => marker.remove());
+            markersRef.current = [];
+            map.remove();
+            if (mapRef.current === map) {
+                mapRef.current = null;
+            }
+        };
     }, []);
 
-    /* =======================
-       Render markers
-    ======================= */
     useEffect(() => {
-        if (!mapRef.current || !gyms?.data?.data) return;
+        setSelectedGym(null);
+    }, [filters]);
 
-        // clear old markers
+    useEffect(() => {
+        if (!mapRef.current) return;
+
         markersRef.current.forEach((m) => m.remove());
         markersRef.current = [];
 
-        const gymIcon = L.icon({
-            iconUrl: "/images/mapMarker.svg",
-            iconSize: [56, 56],
-            iconAnchor: [18, 36],
-        });
+        if (!gyms?.data?.data) return;
 
         gyms.data.data.forEach((gym) => {
+            const markerLabel = gym.state === "Inactive"
+                ? `${gym.title}، غیرفعال`
+                : gym.title;
             const marker = L.marker(
                 [
                     gym.address.geoLocation.latitude,
                     gym.address.geoLocation.longitude,
                 ],
-                { icon: gymIcon }
+                {
+                    icon: L.divIcon({
+                        className: gym.state === "Active"
+                            ? "rounded-full bg-primary-main"
+                            : "rounded-full bg-text-300",
+                        iconSize: [18, 18],
+                        iconAnchor: [9, 9],
+                    }),
+                    title: markerLabel,
+                }
             ).addTo(mapRef.current!);
 
+            marker.getElement()?.setAttribute("aria-label", markerLabel);
             marker.on("click", () => setSelectedGym(gym));
             markersRef.current.push(marker);
         });
-    }, [gyms]);
+    }, [gyms, mapRevision]);
 
 
     return (
-        <div className="w-screen max-w-xl h-[100svh] absolute top-0 left-0 z-[-1] text-white">
-            {/* MAP */}
+        <div className="w-screen max-w-xl h-[100svh] absolute top-0 left-0 z-0 text-white">
             <div id="neshan-map" className="w-full h-full relative z-[50]" />
 
-            {/* Bottom Sheet */}
             {selectedGym && (
                 <div className="absolute bottom-24 left-4 w-[calc(100%-32px)] z-[100]">
                     <GymCard
@@ -98,10 +125,12 @@ const MapComponent = () => {
                         image={import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + selectedGym.images?.[0].imageUrl}
                         title={selectedGym.title}
                         rating={selectedGym.rate}
+                        rateCount={selectedGym.rateCount}
                         genderLabel={selectedGym.supportedGender.map((g) => t("gym.gender." + g)).join(", ")}
                         workingHours={selectedGym.gymTotalWorkingHour.filter((h) => !h.isClosed).map((h) => t("week." + h.dayOfWeek)).join(", ")}
                         address={selectedGym.address.address}
-                        onClick={() => navigate(`gyms/${selectedGym.slug}`)}
+                        onClick={selectedGym.state === "Inactive" ? undefined : () => navigate(`gyms/${selectedGym.slug}`)}
+                        disabled={selectedGym.state === "Inactive"}
                         level={t("gym.level." + selectedGym.level)}
                         variant="map"
                         price={getWeekGlobalMinPrice(selectedGym.weekPrices)}

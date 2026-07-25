@@ -19,7 +19,7 @@ const buttonVariants = cva(
                 ghost:
                     "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 link: "text-primary underline-offset-4 hover:underline",
-                main: "opacity-100 block text-primary-400 bg-linear-to-r from-primary-500/25 via-[#0C0C0B] to-primary-500/25",
+                main: "opacity-100 block text-primary-text bg-linear-to-r from-primary-gradient/25 via-[#0C0C0B] to-primary-gradient/25",
                 alter: "text-secondary-500 hover:text-secondary-main bg-linear-to-r from-secondary-500/25 via-[#0C0C0B] to-secondary-500/25"
             },
             size: {

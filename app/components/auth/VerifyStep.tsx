@@ -8,8 +8,9 @@ type Props = {
     error: string | null;
     handleStepChange: (otp: string) => void;
     handleBack: () => void;
-    handleResend: () => void;
+    handleResend: () => Promise<void>;
     isLoading?: boolean;
+    isResending?: boolean;
 };
 
 
@@ -17,7 +18,14 @@ const OTP_LENGTH = 4;
 const RESEND_TIME = 120;
 const MAX_RESEND_COUNT = 2;
 
-const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleResend }: Props) => {
+const VerifyStep = ({
+    error,
+    isLoading,
+    isResending,
+    handleStepChange,
+    handleBack,
+    handleResend,
+}: Props) => {
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
     const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -78,16 +86,19 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
         handleStepChange(code);
     };
 
-    const handleResendClick = () => {
+    const handleResendClick = async () => {
         if (!canResend || resendCount >= MAX_RESEND_COUNT) return;
 
-        setOtp(Array(OTP_LENGTH).fill(""));
-        setTimeLeft(RESEND_TIME);
-        setCanResend(false);
-        setResendCount((prev) => prev + 1);
-        focusInput(0);
-
-        handleResend();
+        try {
+            await handleResend();
+            setOtp(Array(OTP_LENGTH).fill(""));
+            setTimeLeft(RESEND_TIME);
+            setCanResend(false);
+            setResendCount((prev) => prev + 1);
+            focusInput(0);
+        } catch {
+            return;
+        }
     };
 
 
@@ -116,7 +127,7 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
             <Navigator handleBack={handleBack} title="ارسال کد" />
 
             <div className="w-full text-center">
-                <p className="mb-6 text-white">کد ارسال شده را وارد کنید</p>
+                <p className="mb-6 text-white">کد ارسال شده را وارد کنید.</p>
 
                 <div className="w-full flex items-center flex-row-reverse justify-center gap-4">
                     {otp.map((value, index) => (
@@ -141,24 +152,25 @@ const VerifyStep = ({ error, isLoading, handleStepChange, handleBack, handleRese
                     ))}
                 </div>
 
-                {error && <p className="text-red-500 mt-4">{error}</p>}
+                {error && <p className="text-destructive mt-4">{error}</p>}
 
-                {resendCount >= MAX_RESEND_COUNT ? (
-                    <p className="mt-10 text-white/40 text-sm">
-                        حداکثر تعداد ارسال مجدد انجام شد
-                    </p>
-                ) : !canResend ? (
+                {!canResend ? (
                     <p className="text-white/60 mt-10">
                         <span className="font-medium text-white">
                             {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:{String(timeLeft % 60).padStart(2, "0")}
                         </span>
                     </p>
+                ) : resendCount >= MAX_RESEND_COUNT ? (
+                    <p className="mt-10 text-white/40 text-sm">
+                        حداکثر تعداد ارسال مجدد انجام شد
+                    </p>
                 ) : (
                     <button
                         onClick={handleResendClick}
+                        disabled={isResending}
                         className="cursor-pointer mt-10 text-secondary-main font-medium"
                     >
-                        ارسال مجدد کد
+                        {isResending ? "در حال ارسال..." : "ارسال مجدد کد"}
                     </button>
                 )}
 

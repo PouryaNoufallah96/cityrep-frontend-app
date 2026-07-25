@@ -1,31 +1,36 @@
 import { Check } from "lucide-react";
+import TrendIcon from "~/components/shared/TrendIcon";
 
 type TrendButtonProps = {
   title: string;
+  rawTitle: string;
   price: number;
-  icon?: string;
+  iconFileId?: string;
   selected: boolean;
   onClick: () => void;
 };
 
 const TrendButton = ({
   title,
+  rawTitle,
   price,
-  icon,
+  iconFileId,
   selected,
   onClick,
 }: TrendButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="w-full border border-[#A0A0A0] rounded-[12px] p-3 flex justify-between items-center"
+      className={`w-full border rounded-[12px] p-3 flex justify-between items-center ${
+        selected ? "border-primary-700 bg-primary-700/12" : "border-[#A0A0A0]"
+      }`}
     >
       <div className="flex gap-4">
         <div className="w-14 h-14 bg-primary-700/8 rounded-[8px] flex items-center justify-center">
-          <img
-            src={icon || "/images/mock/defaultTrendPurple.png"}
-            alt={title}
-            className="w-6 h-6"
+          <TrendIcon
+            title={rawTitle}
+            fileId={iconFileId}
+            className="w-6 h-6 text-primary-700"
           />
         </div>
 

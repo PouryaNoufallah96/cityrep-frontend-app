@@ -1,15 +1,16 @@
 import { axiosInstance } from "~/lib/axiosInstance";
 
-
-/* =======================
-   DTOs
-======================= */
 export type CreateDepositPayload = {
     amount: number;
 }
 
-export type CreateDepositResult = {
-    depositReference: string
+export type CreateDepositResult = string;
+
+export enum DepositState {
+    Pending = "Pending",
+    Done = "Done",
+    Cancel = "Cancel",
+    Failed = "Failed",
 }
 
 export type VerifyDepositPayload = {
@@ -19,14 +20,8 @@ export type VerifyDepositPayload = {
 export type VerifyDepositResult = {
     "amount": number,
     "reference": string,
-    "state": string
+    "state": DepositState
 }
-
-
-
-/* =======================
-   Services
-======================= */
 
 export const depositServices = {
 

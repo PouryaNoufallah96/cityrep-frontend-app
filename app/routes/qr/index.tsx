@@ -1,20 +1,16 @@
-import { Banknote, CalendarDays, ChevronLeft, Clock, QrCode, XIcon } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import { PaperPlane } from "react-coolicons"
-import CheckoutItem from "~/components/gym/reserve/CheckoutItem"
+import { useEffect, useRef } from "react"
 import QrGymItem from "~/components/qr/QrGymItem"
-import { dateTimes, trends } from "~/constants/mock"
 import { useGetClientGymAttendanceListInfinite } from "~/reactQuery/gymAttendance/hooks"
+import { GymAttendanceState } from "~/reactQuery/gymAttendance/services"
 
 const QrcodePage = () => {
-    const [showQr, setShowQr] = useState(false)
     const {
         data,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
     } = useGetClientGymAttendanceListInfinite({
-        states: ["Reserved"],
+        states: [GymAttendanceState.Reserved],
     });
 
     const listRef = useRef<HTMLDivElement>(null);
@@ -41,23 +37,20 @@ const QrcodePage = () => {
     }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
     return (
-
-        <>
-
-
-            <div
-                ref={listRef}
-                className="w-full h-[100svh] gap-3 pb-[100px] overflow-auto my-scroll flex flex-col pt-4 bg-[#121314]">
-                {
-                    attendances.map(item => (
-                        <QrGymItem key={item.gymAttendanceId} gym={item} />
-                    ))
-                }
-
-
-
-            </div>
-        </>
+        <div
+            ref={listRef}
+            tabIndex={-1}
+            aria-label="بلیت‌های فعال"
+            className="w-full h-[100svh] gap-3 pb-[100px] overflow-auto my-scroll flex flex-col pt-4 bg-[#121314]"
+        >
+            {attendances.map(item => (
+                <QrGymItem
+                    key={item.gymAttendanceId}
+                    gym={item}
+                    fallbackFocusRef={listRef}
+                />
+            ))}
+        </div>
     )
 }
 

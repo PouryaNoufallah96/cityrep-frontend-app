@@ -34,14 +34,14 @@ const TextInput = ({
         <div className="w-full">
             {label &&
                 <div className="flex items-center mb-2 h-[22px]">
-                    <div className={`w-2 h-2 rounded-full ${error ? "bg-red-600" : value.length > 0 ? "bg-green-400" : "bg-[#858585]"} ml-2`} />
+                    <div className={`w-2 h-2 rounded-full ${error ? "bg-destructive" : value.length > 0 ? "bg-success" : "bg-[#858585]"} ml-2`} />
                     <p className="text-white text-sm">{label}</p>
                 </div>
             }
 
             <div
                 className={`w-full h-12 gap-2 rounded-full flex items-center px-5 py-3 transition
-          ${error ? "border-red-500" : "border-white/40"}
+          ${error ? "border-destructive" : "border-white/40"}
           bg-white/8 border`}
             >
                 {icon && <span className="text-white">{icon}</span>}
@@ -56,8 +56,8 @@ const TextInput = ({
                     value={value}
                     placeholder={placeholder}
                     onChange={(e) => onChange(e.target.value)}
-                    className={`bg-transparent outline-none ${icon ? "px-3" : ""} w-full text-white
-            placeholder:text-white placeholder:opacity-50 ${dir === 'ltr' ? 'text-left' : ''}`}
+                    className={`bg-transparent outline-none ${icon ? "px-3" : ""} w-full text-white text-right
+            placeholder:text-white placeholder:opacity-50`}
                 />
 
                 {onClear && (
@@ -73,7 +73,7 @@ const TextInput = ({
 
             </div>
 
-            <p className="text-red-500 mt-3 h-6 text-sm">{error}</p>
+            <p className="text-destructive mt-3 h-6 text-sm">{error}</p>
         </div>
     );
 };

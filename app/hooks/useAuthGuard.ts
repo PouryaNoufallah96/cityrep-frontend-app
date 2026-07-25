@@ -1,33 +1,88 @@
-import {useEffect, useState} from "react";
-import {useNavigate, useLocation} from "react-router";
-import {getSessionStorage} from "~/lib/utils";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { getSessionStorage } from "~/lib/utils";
+import { useGetClientData } from "~/reactQuery/auth/hooks";
 
-/**
- * Handles both "auth" (requires token) and "guest" (must NOT have token) modes.
- * Prevents flashing by returning a "checked" state.
- */
 export const useAuthGuard = (mode: "auth" | "guest") => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [checked, setChecked] = useState<boolean>();
+    const hasToken = typeof window !== "undefined"
+        && !!getSessionStorage(import.meta.env.VITE_TOKEN_KEY);
+    const {
+        data: clientData,
+        isPending,
+        isError,
+        refetch,
+    } = useGetClientData(hasToken);
+    const [allowed, setAllowed] = useState(false);
+    const [profileErrorVisible, setProfileErrorVisible] = useState(false);
+    const [isRetrying, setIsRetrying] = useState(false);
 
     useEffect(() => {
-        if (typeof document === "undefined") return;
+        setAllowed(false);
 
-        const hasToken = !!getSessionStorage(import.meta.env.VITE_TOKEN_KEY);
-        if (mode === "auth" && !hasToken) {
-            navigate("/auth", {replace: true});
-            return; // don’t mark as checked to block rendering
-        }
+        if (!hasToken) {
+            setProfileErrorVisible(false);
+            setIsRetrying(false);
 
-        if (mode === "guest" && hasToken) {
-            navigate("/", {replace: true});
+            if (mode === "auth") {
+                navigate("/auth", { replace: true });
+                return;
+            }
+
+            setAllowed(true);
             return;
         }
 
-        // Safe to render
-        setChecked(true);
-    }, [mode, navigate, location.pathname]);
+        if (isError) {
+            setProfileErrorVisible(true);
+        } else if (clientData) {
+            setProfileErrorVisible(false);
+        }
 
-    return checked;
+        if (isPending || isError || !clientData) {
+            return;
+        }
+
+        if (mode === "auth" && !clientData.isProfileCompleted) {
+            navigate("/auth", { replace: true });
+            return;
+        }
+
+        if (mode === "guest" && clientData.isProfileCompleted) {
+            navigate("/", { replace: true });
+            return;
+        }
+
+        setAllowed(true);
+    }, [
+        clientData,
+        hasToken,
+        isError,
+        isPending,
+        location.pathname,
+        mode,
+        navigate,
+    ]);
+
+    const retryProfile = async () => {
+        setProfileErrorVisible(true);
+        setIsRetrying(true);
+
+        try {
+            const result = await refetch();
+            setProfileErrorVisible(result.isError || !result.data);
+        } catch {
+            setProfileErrorVisible(true);
+        } finally {
+            setIsRetrying(false);
+        }
+    };
+
+    return {
+        allowed,
+        hasProfileError: hasToken && (profileErrorVisible || isError),
+        retryProfile,
+        isRetrying,
+    };
 };

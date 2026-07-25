@@ -7,12 +7,13 @@ import InputButton from "~/components/ui/InputButton";
 import TextInput from "~/components/ui/TextInput";
 import JalaaliDatePickerSheet from "~/components/shared/JalaaliDatePickerSheet";
 import moment from "moment-jalaali";
+import { Spinner } from "~/components/ui/spinner";
 
 type Props = {
-    error: string | null;
-    handleStepChange: (data: any) => void;
+    error?: string | null;
+    handleStepChange: (data: ProfileFormData) => void;
     handleBack: () => void;
-    handleResend: () => void;
+    isLoading?: boolean;
 };
 
 type Gender = "Male" | "Female" | "";
@@ -24,7 +25,7 @@ export type ProfileFormData = {
     birthDay: string; // YYYY-MM-DD
 };
 
-const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
+const CompleteProfileStep = ({ error, handleStepChange, handleBack, isLoading }: Props) => {
     const [form, setForm] = useState<ProfileFormData>({
         firstName: "",
         lastName: "",
@@ -47,10 +48,10 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
     const validateForm = () => {
         const newErrors: typeof errors = {};
 
-        if (!form.firstName.trim()) newErrors.firstName = "نام الزامی است";
-        if (!form.lastName.trim()) newErrors.lastName = "نام خانوادگی الزامی است";
-        if (!form.gender) newErrors.gender = "جنسیت را انتخاب کنید";
-        if (!form.birthDay) newErrors.birthDay = "تاریخ تولد را وارد کنید";
+        if (!form.firstName.trim()) newErrors.firstName = "لطفا نام خود را انتخاب کنید";
+        if (!form.lastName.trim()) newErrors.lastName = "لطفا نام خانوادگی خود را انتخاب کنید";
+        if (!form.gender) newErrors.gender = "لطفا جنسیت خود را انتخاب کنید";
+        if (!form.birthDay) newErrors.birthDay = "لطفا تاریخ تولد خود را انتخاب کنید";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -115,10 +116,13 @@ const CompleteProfileStep = ({ handleStepChange, handleBack }: Props) => {
                 <Button
                     onClick={submitHandler}
                     className="text-white font-medium w-full h-12 rounded-full bg-primary-main"
+                    disabled={isLoading}
                 >
+                    {isLoading && <Spinner />}
                     تایید
                 </Button>
 
+                {error && <p className="text-destructive mt-3 text-sm text-center">{error}</p>}
 
             </div>
 

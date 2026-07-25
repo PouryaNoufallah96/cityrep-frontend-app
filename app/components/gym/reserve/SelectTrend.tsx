@@ -1,8 +1,15 @@
-import { Check } from "lucide-react";
 import TrendButton from "~/components/gym/reserve/TrendButton";
-import { trends } from "~/constants/mock";
 import type { GymDaySchedule, GymResult, GymTrend } from "~/reactQuery/gym/services";
-import type { TrendButtonItem } from "~/types";
+
+type ReserveTrendButtonItem = {
+    id: string;
+    trendId: string;
+    gender: "Male" | "Female";
+    title: string;
+    rawTitle: string;
+    price: number;
+    iconFileId?: string;
+};
 
 const SelectTrend = ({
     setSelectedTrend,
@@ -29,17 +36,18 @@ const SelectTrend = ({
     }
 
 
-    const buildTrendButtons = (trends: GymTrend[]): TrendButtonItem[] => {
+    const buildTrendButtons = (trends: GymTrend[]): ReserveTrendButtonItem[] => {
         return trends.flatMap(trend => {
-            const items: TrendButtonItem[] = [];
+            const items: ReserveTrendButtonItem[] = [];
             if (hasSessions(trend.men)) {
                 items.push({
                     id: `${trend.gymTrendId}-men`,
                     trendId: trend.gymTrendId,
                     gender: "Male",
                     title: `${trend.title} (آقایان)`,
+                    rawTitle: trend.title,
                     price: calculateMinPrice(trend.men),
-                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl,
+                    iconFileId: trend.trendIconUrl,
                 });
             }
 
@@ -49,8 +57,9 @@ const SelectTrend = ({
                     trendId: trend.gymTrendId,
                     gender: "Female",
                     title: `${trend.title} (بانوان)`,
+                    rawTitle: trend.title,
                     price: calculateMinPrice(trend.women),
-                    icon: import.meta.env.VITE_BASE_API + "/File/DownloadFile/" + trend.trendIconUrl,
+                    iconFileId: trend.trendIconUrl,
                 });
             }
 
@@ -67,15 +76,16 @@ const SelectTrend = ({
             <TrendButton
                 key={item.id}
                 title={item.title}
+                rawTitle={item.rawTitle}
                 price={item.price}
-                icon={item.icon}
+                iconFileId={item.iconFileId}
                 selected={SelectedTrend === item.id}
                 onClick={() => setSelectedTrend(item.id)}
             />
         ))}
 
         {
-            errors.length > 0 && <div className="text-red-500 text-sm mt-2">
+            errors.length > 0 && <div className="text-destructive text-sm mt-2">
                 {errors.map((error, index) => (
                     <div key={index}>{error}</div>
                 ))}
